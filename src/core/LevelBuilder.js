@@ -6,8 +6,13 @@
 // "baked" contact-occlusion gradient near floors and ceilings.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { makeMaterial } from './Materials.js';
+import { makeMaterial, quality } from './Materials.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { contactStrip } from './Architecture.js';
 import { blobShadowTex } from '../utils/Textures.js';
+import { validateLevel } from '../utils/GeometryValidator.js';
+
+const VALIDATE = typeof location !== 'undefined' && /[?&]validate/.test(location.search);
 
 const _m = new THREE.Matrix4();
 const _q = new THREE.Quaternion();
@@ -21,6 +26,20 @@ export class LevelBuilder {
     this.buckets = new Map();
     this.mats = new Map();
     this.plain = this.mat('__plain', { color: 0xffffff, roughness: 0.8 });
+    this.placed = new Set();   // duplicate-placement guard
+    this.audit = [];           // axis-aligned boxes for validation
+    this.warnings = [];
+    this.propAudit = [];
+  }
+
+  // Returns false (and records a warning) for an exact duplicate of something already placed.
+  _guard(kind, minX, minY, minZ, maxX, maxY, maxZ, mat) {
+    if (![minX, minY, minZ, maxX, maxY, maxZ].every(Number.isFinite)) { this.warnings.push({ type: 'invalid-transform', kind }); return false; }
+    const r = (v) => Math.round(v * 200);
+    const key = `${mat.uuid}|${r(minX)},${r(minY)},${r(minZ)},${r(maxX)},${r(maxY)},${r(maxZ)}`;
+    if (this.placed.has(key)) { this.warnings.push({ type: 'duplicate', kind, at: [minX, minY, minZ].map((v) => +v.toFixed(2)), mat: mat.name }); return false; }
+    this.placed.add(key);
+    return true;
   }
 
   // ---- materials ----
@@ -73,6 +92,14 @@ export class LevelBuilder {
   // Box with center x/z and bottom y.
   box(x, y, z, w, h, d, mat, o = {}) {
     const flat = h < 0.3 || w < 0.02 || d < 0.02;
+    const rq = o.rotY ? ((o.rotY % (Math.PI / 2)) + Math.PI / 2) % (Math.PI / 2) : 0;
+    const axisAligned = !o.rotX && !o.rotZ && (rq < 1e-3 || Math.PI / 2 - rq < 1e-3);
+    if (axisAligned) {
+      const swap = o.rotY && Math.abs(Math.cos(o.rotY)) < 0.5;
+      const ax = swap ? d : w, az = swap ? w : d;
+      if (!this._guard('box', x - ax / 2, y, z - az / 2, x + ax / 2, y + h, z + az / 2, mat)) return null;
+      this.audit.push({ min: [x - ax / 2, y, z - az / 2], max: [x + ax / 2, y + h, z + az / 2], mat, visible: !(mat.visible === false), transparent: mat.transparent, ceiling: !!o.isCeiling });
+    }
     const ao = o.ao ?? !flat;
     const hs = ao ? Math.min(10, Math.max(1, Math.ceil(h / 0.35))) : 1;
     let g = new THREE.BoxGeometry(w, h, d, 1, hs, 1);
@@ -98,11 +125,16 @@ export class LevelBuilder {
     g.translate(x, y, z);
     g = this._ensureAttrs(g);
     this._shade(g, { tint: o.tint ?? 0xffffff, ao, floorY: o.floorY ?? y, ceilY: o.ceilY ?? null, aoStrength: o.aoStrength ?? 0.4 });
-    this._push(g, mat, o.cast);
+    // outdoor architecture casts sun shadows; interior shells do not (they would block the key light)
+    const cast = o.cast ?? (!!this.level.outdoor && !flat && h > 0.5 && !mat.transparent);
+    this._push(g, mat, cast);
     if (o.collide !== false && !o.noCollide) {
-      g.computeBoundingBox();
-      const bb = g.boundingBox;
-      this.level.addCollider(bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z, o.surface);
+      if (o.rotY && !o.rotX && !o.rotZ) this.level.addOBB(x, y, z, w, h, d, o.rotY, o.surface);
+      else {
+        g.computeBoundingBox();
+        const bb = g.boundingBox;
+        this.level.addCollider(bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z, o.surface);
+      }
     }
     return g;
   }
@@ -114,7 +146,8 @@ export class LevelBuilder {
   }
 
   ceiling(x0, z0, x1, z1, y, mat, o = {}) {
-    return this.box((x0 + x1) / 2, y, (z0 + z1) / 2, Math.abs(x1 - x0), o.thick ?? 0.15, Math.abs(z1 - z0), mat, { ao: false, collide: false, ...o });
+    // 1 cm inset so a ceiling's edge never lies in the same plane as a wall face
+    return this.box((x0 + x1) / 2, y, (z0 + z1) / 2, Math.abs(x1 - x0) - 0.02, o.thick ?? 0.15, Math.abs(z1 - z0) - 0.02, mat, { ao: false, collide: false, isCeiling: true, ...o });
   }
 
   // Wall along a segment with optional openings [{at, w, h, y0}].
@@ -141,11 +174,18 @@ export class LevelBuilder {
       cur = col.b;
     }
     if (cur < len) pieces.push([cur, len, 0, h]);
+    const ux = dx / len, uz = dz / len, nx = -uz, nz = ux;
     for (const [a, b, yb, yt] of pieces) {
       if (b - a < 0.001 || yt - yb < 0.001) continue;
       const mid = (a + b) / 2;
-      const cx = x0 + dx / len * mid, cz = z0 + dz / len * mid;
+      const cx = x0 + ux * mid, cz = z0 + uz * mid;
       this.box(cx, y + yb, cz, b - a, yt - yb, t, mat, { ...o, rotY: ang, floorY: y, ceilY: y + h });
+      // baked contact shading where the wall meets the floor (both faces)
+      if (yb === 0 && h >= 1.5 && o.contact !== false && o.collide !== false && !mat.transparent) {
+        const ax = x0 + ux * a, az = z0 + uz * a, bx = x0 + ux * b, bz = z0 + uz * b, ht = t / 2;
+        contactStrip(this, ax + nx * ht, az + nz * ht, bx + nx * ht, bz + nz * ht, y);
+        contactStrip(this, bx - nx * ht, bz - nz * ht, ax - nx * ht, az - nz * ht, y);
+      }
     }
   }
 
@@ -190,7 +230,11 @@ export class LevelBuilder {
       if (shape === 'cyl') g = new THREE.CylinderGeometry(w / 2, w / 2, h, 12);
       else if (shape === 'sphere') g = new THREE.SphereGeometry(w / 2, 12, 8);
       else if (shape === 'cone') g = new THREE.ConeGeometry(w / 2, h, 12);
-      else g = new THREE.BoxGeometry(w, h, d);
+      else {
+        // bevelled edges read as real furniture instead of raw cubes
+        const m = Math.min(w, h, d);
+        g = m > 0.035 && !o.sharp ? new RoundedBoxGeometry(w, h, d, quality.level === 'low' ? 1 : 2, Math.min(0.02, m * 0.22)) : new THREE.BoxGeometry(w, h, d);
+      }
       if (shape === 'sphere') g.scale(1, h / w, d / w);
       g.translate(cx, cy + h / 2, cz);
       g.rotateY(rotY);
@@ -201,8 +245,9 @@ export class LevelBuilder {
       box.union(g.boundingBox);
       geos.push(g);
     }
-    for (const g of geos) this._push(g, o.mat || this.plain, o.cast);
+    for (const g of geos) this._push(g, o.mat || this.plain, o.cast ?? true);
     if (o.collide) this.level.addCollider(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z, o.surface);
+    this.propAudit.push({ min: box.min.toArray(), max: box.max.toArray(), name: o.name || 'prop' });
     if (o.blob !== false) this.blob(x, y, z, (box.max.x - box.min.x) * 1.25, (box.max.z - box.min.z) * 1.25);
     return box;
   }
@@ -266,6 +311,11 @@ export class LevelBuilder {
   }
 
   finalize() {
+    if (VALIDATE) {
+      const issues = validateLevel(this.audit, this.propAudit);
+      this.level.report = { warnings: this.warnings, issues };
+      console.info(`[validate] ${this.level.id}: ${issues.length} issues, ${this.warnings.length} warnings`);
+    }
     for (const b of this.buckets.values()) {
       const merged = mergeGeometries(b.geos, false);
       b.geos.forEach((g) => g.dispose());

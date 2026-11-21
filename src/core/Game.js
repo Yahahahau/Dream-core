@@ -191,10 +191,10 @@ export class Game {
       // rebuild the current place so materials pick up the new tier
       const lvl = this.world.level;
       if (lvl) {
-        const pos = this.player.pos.toArray(), yaw = this.cam.yaw;
+        const pos = this.player.pos.toArray(), yaw = this.cam.yaw, pitch = this.cam.pitch;
         this.world.level.dispose();
         this.world.level = null;
-        this.world.goTo(lvl.id, 'default', { pos, yaw, instant: true, silent: true });
+        this.world.goTo(lvl.id, 'default', { pos, yaw, instant: true, silent: true }).then(() => this.cam.setPitch(pitch));
       }
     }
     if (['musicVolume', 'ambienceVolume', 'sfxVolume', 'muted'].includes(key)) this.audio.applyVolumes();

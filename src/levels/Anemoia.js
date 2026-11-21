@@ -16,6 +16,7 @@ const PASTEL = [0xf2b8c0, 0xb8e6c8, 0xf6e4a0, 0xa8d0f0, 0xd0c0f0, 0xf6c8a8, 0xf4
 
 export default class Anemoia extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game;
     this.heightAt = () => 0;
     this.terrainSurface = 'grass';

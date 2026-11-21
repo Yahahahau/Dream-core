@@ -26,6 +26,25 @@ Built with three.js + Vite. Works on desktop, Android, iPad and portrait/landsca
 08 Hallways of Time · 09 The Edge of the World · 10 Broken Reality · 11 Frozen Dream ·
 12 Anemoia. The full connection map is in `public/data/levels/levels.json`.
 
+## Graphics settings
+
+| | LOW (default) | MEDIUM | HIGH |
+|---|---|---|---|
+| Shading | Lambert | PBR + sky reflections | PBR + sky reflections |
+| Sun shadows | 1024 map, 16 m | 2048 soft, 26 m | 4096 (desktop) / 2048 soft, 38 m |
+| Anti-aliasing | — | MSAA ×2 | MSAA ×4 |
+| Bloom | — | — | ✓ |
+| Render distance | 480 m | 900 m | 1500 m |
+
+Every tier keeps real-time shadows, baked contact shading and colour grading.
+The first launch always uses LOW; the chosen tier is saved.
+
+## QA
+
+`?validate=1` runs the geometry audit (`src/utils/GeometryValidator.js`) on each level.
+`node tools/qa-validate.mjs` and `node tools/qa-portals.mjs` (needs `npm i -D playwright`)
+check every level and every portal door. Results: `docs/QA_CHECKLIST.md`.
+
 ## Development
 
 ```bash
@@ -45,7 +64,7 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and publ
 ## Project structure
 
 ```
-src/core/         Game loop, renderer + post FX, world/level streaming, audio, input
+src/core/         Game loop, renderer + post FX, quality tiers, architecture kit, world streaming, audio, input
 src/player/       Player physics, camera (head bob + idle sway), collision, interaction
 src/levels/       One file per location + LevelRegistry
 src/environment/  Lighting presets, sky/fog, water, particles, grass & trees

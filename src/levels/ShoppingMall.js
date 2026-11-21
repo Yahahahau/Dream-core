@@ -10,6 +10,7 @@ import { createWater } from '../environment/WaterSystem.js';
 import { createDoor } from '../interaction/Door.js';
 import { addExamine, addNote, addPortal, hitbox, yawTo } from '../interaction/Interactable.js';
 import { makeMaterial } from '../core/Materials.js';
+import { railing, pillar } from '../core/Architecture.js';
 
 const UP = 6;
 
@@ -32,18 +33,19 @@ export default class ShoppingMall extends Level {
     for (const [x0, z0, x1, z1] of [[-12, -20, 12, -15], [-12, 15, 12, 20], [-12, -15, -7, 15], [7, -15, 12, 15]]) b.box((x0 + x1) / 2, UP - 0.45, (z0 + z1) / 2, x1 - x0, 0.45, z1 - z0, slabM, { surface: 'tile', ao: false });
     for (const [x0, z0, x1, z1] of [[-12, -20, 12, -15], [-12, 15, 12, 20], [-12, -15, -7, 15], [7, -15, 12, 15]]) b.box((x0 + x1) / 2, UP + 0.001, (z0 + z1) / 2, x1 - x0, 0.01, z1 - z0, marble, { collide: false, ao: false });
     // glass railings around the void (gap at escalator landing)
-    const railRun = (x0, z0, x1, z1) => { b.box((x0 + x1) / 2, UP, (z0 + z1) / 2, Math.max(0.05, x1 - x0), 1.05, Math.max(0.05, z1 - z0), glass, { ao: false }); b.box((x0 + x1) / 2, UP + 1.0, (z0 + z1) / 2, Math.max(0.08, x1 - x0) + 0.04, 0.07, Math.max(0.08, z1 - z0) + 0.04, chrome, { collide: false, ao: false }); };
+    const railRun = (x0, z0, x1, z1) => railing(b, x0, z0, x1, z1, UP, { glass, railMat: chrome, postMat: chrome, spacing: 1.6 });
     railRun(-7, -15, 7, -15); railRun(-7, 15, -3, 15); railRun(3, 15, 7, 15); railRun(-7, -15, -7, 15); railRun(7, -15, 7, 15);
     // pillars
-    for (const x of [-7, 7]) for (const z of [-15, -5, 5, 15]) b.box(x, 0, z, 0.6, UP - 0.45, 0.6, wallM);
+    for (const x of [-7, 7]) for (const z of [-15, -5, 5, 15]) pillar(b, x + Math.sign(x) * 0.45, 0, z + (Math.abs(z) === 15 ? -Math.sign(z) * 0.45 : 0), UP - 0.45, { size: 0.55, mat: wallM, trim: chrome, round: true });
     // skylight + ceilings
     b.ceiling(-12, -20, 12, -15, 11, ceilM); b.ceiling(-12, 15, 12, 20, 11, ceilM); b.ceiling(7, -15, 12, 15, 11, ceilM);
     b.ceiling(-12, -15, -11, 15, 11, ceilM); b.ceiling(-9, -15, -7, 15, 11, ceilM); b.ceiling(-11, -15, -9, -8, 11, ceilM);
-    for (const x of [-7, 7]) b.box(x, 11, 0, 0.3, 1, 30, wallM, { collide: false, ao: false });
-    for (const z of [-15, 15]) b.box(0, 11, z, 14.3, 1, 0.3, wallM, { collide: false, ao: false });
+    // skylight well: beams hang below the ceiling line and stop short of each other
+    for (const x of [-7, 7]) b.box(x, 10.6, 0, 0.36, 1.32, 29.64, wallM, { collide: false, ao: false });
+    for (const z of [-15, 15]) b.box(0, 10.6, z, 14.36, 1.32, 0.36, wallM, { collide: false, ao: false });
     const sky = new THREE.Mesh(new THREE.PlaneGeometry(14, 30), new THREE.MeshBasicMaterial({ color: 0xeef6ff }));
     sky.rotation.x = Math.PI / 2; sky.position.set(0, 12, 0); this.group.add(sky); this.disposables.push(sky.geometry, sky.material);
-    for (let x = -5.25; x <= 5.25; x += 3.5) for (let z = -13.5; z <= 13.5; z += 3) b.box(x, 11.9, z, 0.12, 0.1, 3, chrome, { collide: false, ao: false, tint: 0x9aa0a8 });
+    for (let x = -5.25; x <= 5.25; x += 3.5) for (let z = -13.5; z <= 13.5; z += 3) b.box(x, 11.84, z, 0.12, 0.1, 2.9, chrome, { collide: false, ao: false, tint: 0x9aa0a8 });
     for (let x = -10; x <= 10; x += 5) for (let z = -18; z <= 18; z += 6) if (Math.abs(x) > 6 || Math.abs(z) > 14) fluorescent(this, x, UP - 0.45, z, { w: 1, d: 1, color: 0xfffaf0 });
 
     // ============ escalators ============
@@ -84,7 +86,7 @@ export default class ShoppingMall extends Level {
 
     // ============ fountain ============
     b.prop([[0, 0, 0, 6.4, 0.55, 6.4, 0xe8e4dc, 'cyl'], [0, 0, 0, 0.7, 2.2, 0.7, 0xe8e4dc, 'cyl'], [0, 2.2, 0, 1.6, 0.25, 1.6, 0xe8e4dc, 'cyl']], 0, 0, -6, 0, { collide: true });
-    createWater(this, { x0: -2.9, z0: -8.9, x1: 2.9, z1: -3.1, y: 0.5, opacity: 0.6, shallow: 0x8fe0e8, sky: 0xf4fbff, scale: 2 });
+    createWater(this, { x0: -2.9, z0: -8.9, x1: 2.9, z1: -3.1, radius: 2.95, y: 0.5, opacity: 0.6, shallow: 0x8fe0e8, sky: 0xf4fbff, scale: 2 });
     const fw = new THREE.Object3D(); fw.position.set(0, 1, -6); this.group.add(fw);
     g.audio.positional(fw, { kind: 'water', volume: 0.4, ref: 3, filter: ['bandpass', 1800] });
     for (const [x, z] of [[-5, 10], [5, 10], [-5, -12], [5, -12]]) { b.prop([[0, 0, 0, 1.6, 0.6, 1.6, 0xd8d4cc]], x, 0, z, 0, { collide: true }); }
@@ -147,8 +149,8 @@ export default class ShoppingMall extends Level {
     const rt = b.mat('rtile', { map: tileTex({ tile: 0xd8e8e0, grout: 0xa8b8b0, n: 10, key: 'rest' }), texScale: [1.5, 1.5] });
     b.floor(-3, -28, 3, -20, 0, rt, { surface: 'tile' });
     b.ceiling(-3, -28, 3, -20, 3.2, ceilM);
-    b.wall(-3 - t / 2, -28, -3 - t / 2, -20, 0, 3.2, rt, { thick: t, openings: [{ at: 4, w: 0.95, h: 2.1 }] });
-    b.wall(3 + t / 2, -28, 3 + t / 2, -20, 0, 3.2, rt, { thick: t, openings: [{ at: 4, w: 0.95, h: 2.1 }] });
+    b.wall(-3 - t / 2, -28, -3 - t / 2, -20, 0, 3.2, rt, { thick: t, openings: [{ at: 4, w: 1.0, h: 2.12 }] });
+    b.wall(3 + t / 2, -28, 3 + t / 2, -20, 0, 3.2, rt, { thick: t, openings: [{ at: 4, w: 1.0, h: 2.12 }] });
     b.wall(-3, -28 - t / 2, 3, -28 - t / 2, 0, 3.2, rt, { thick: t });
     createDoor(this, { x: -3 - t / 2, y: 0, z: -24, rotY: Math.PI / 2, kind: 'flat', color: 0xd88aa8, locked: 'Out of order. There is a sign with a drawing of a wave.' });
     createDoor(this, { x: 3 + t / 2, y: 0, z: -24, rotY: -Math.PI / 2, kind: 'flat', color: 0x7ab0d8, locked: 'Out of order. Water is running somewhere inside, very gently.' });
@@ -157,10 +159,9 @@ export default class ShoppingMall extends Level {
 
     // ============ floor 3 (should not exist) ============
     const Y3 = UP * 2;
-    b.box(-15, Y3 - 0.4, 11, 14, 0.4, 18, slabM, { surface: 'tile', ao: false });
+    b.box(-15, Y3 - 0.4, 11, 14, 0.4, 18, b.mat('f3carpet', { map: carpetTex('mall'), texScale: [3, 3] }), { surface: 'carpet', ao: false });
     b.box(-10, Y3 - 0.4, -3, 2, 0.4, 2, slabM, { collide: false, ao: false });
     const dim = b.mat('dimwall', { map: plasterTex(0xd8d4cc, 'dim'), roughness: 1, texScale: [3, 3] });
-    b.box(-15, Y3 + 0.001, 11, 14, 0.01, 18, b.mat('f3carpet', { map: carpetTex('mall'), texScale: [3, 3] }), { collide: false, ao: false });
     b.wall(-22, 2 - t / 2, -8, 2 - t / 2, Y3, 4, dim, { thick: t, openings: [{ at: 12, w: 1.8, h: 3 }] });
     b.wall(-22, 20 + t / 2, -8, 20 + t / 2, Y3, 4, dim, { thick: t, openings: [{ at: 7, w: 1.0, h: 2.15 }] });
     b.wall(-8 + t / 2, 2, -8 + t / 2, 20, Y3, 4, dim, { thick: t });
@@ -173,7 +174,7 @@ export default class ShoppingMall extends Level {
     texturedPlane(this, textTex('FLOOR 3', { w: 256, h: 64, bg: '#2a2a30', fg: '#d8d8d8', font: 'bold 36px sans-serif' }), -15, Y3 + 3, 2 - t / 2 + 0.11, 0.9, 0.22, 0);
     texturedPlane(this, textTex('THIS FLOOR IS NOT ON THE MAP', { w: 768, h: 64, bg: null, fg: '#5a5a66', font: '30px monospace' }), -21.88, Y3 + 2.6, 11, 3.6, 0.3, Math.PI / 2, { unlit: true, alpha: true });
 
-    this.setLightZones([{ min: [-23, Y3 - 1, 1], max: [-7, Y3 + 5, 21], hemi: 0.75, exposure: 0.95 }], { hemi: 1.6, exposure: 1.0 });
+    this.setLightZones([{ min: [-23, Y3 - 1, 1], max: [-7, Y3 + 5, 21], hemi: 0.65, exposure: 0.95 }], { hemi: 1.3, exposure: 1.0 });
 
     this.addSpawn('default', [0, 0, -18], yawTo(0, 1));
     this.addSpawn('from-apartments', [0, 0, -18], yawTo(0, 1));
@@ -192,7 +193,7 @@ export default class ShoppingMall extends Level {
     if (z1 === 20) b.wall(xa, z1 - t / 2, xb, z1 - t / 2, y, h, wallM, { thick: t });
     // front: glass with a doorway, or a shutter
     if (kind === 'closed') {
-      b.box(front, y, z0 + 5, t, h, 10, b.mat('shutter', { map: textTex(['', ''], { w: 64, h: 64, bg: '#a8aab0', key: 'shutterbase' }), color: 0xb0b2b8, texScale: [0.3, 0.3] }), { tint: 0xd0d0d4 });
+      b.box(front, y, z0 + 5, t, h - 0.05, 9.6, b.mat('shutter', { map: textTex(['', ''], { w: 64, h: 64, bg: '#a8aab0', key: 'shutterbase' }), color: 0xb0b2b8, texScale: [0.3, 0.3] }), { tint: 0xd0d0d4 });
       for (let k = 0; k < 18; k++) b.box(front + side * 0.11, y + 0.3 * k, z0 + 5, 0.02, 0.04, 9.8, chrome, { collide: false, ao: false, tint: 0x888888 });
       return;
     }

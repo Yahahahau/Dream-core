@@ -6,6 +6,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { setAnisotropy } from '../utils/Textures.js';
+import { tier } from './QualityPresets.js';
 
 const GradeShader = {
   uniforms: {
@@ -75,18 +76,23 @@ export class Renderer {
 
   setQuality(q) {
     this.quality = q;
-    const r = this.r;
-    r.shadowMap.enabled = q !== 'low';
+    const r = this.r, T = tier(q);
+    this.tier = T;
+    // every tier keeps real-time shadows; LOW uses a smaller, harder-filtered map
+    r.shadowMap.enabled = true;
+    r.shadowMap.type = T.shadowSoft ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     r.shadowMap.needsUpdate = true;
-    this.maxRatio = { low: 1, medium: 1.5, high: 2 }[q];
+    this.maxRatio = T.maxRatio;
+    this.game.camera.far = T.far;
+    this.game.camera.updateProjectionMatrix();
     this.scale = 1;
     this.composer?.dispose?.();
     this.composer = null;
     const scene = this.game.scene, cam = this.game.camera;
-    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: q === 'high' ? 4 : q === 'medium' ? 2 : 0 });
+    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: T.msaa });
     const comp = new EffectComposer(r, target);
     comp.addPass(new RenderPass(scene, cam));
-    if (q === 'high') {
+    if (T.bloom) {
       this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.22, 0.6, 0.9);
       comp.addPass(this.bloom);
     } else this.bloom = null;

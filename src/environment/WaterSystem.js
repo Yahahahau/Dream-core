@@ -48,9 +48,10 @@ void main(){
   #include <fog_fragment>
 }`;
 
-export function createWater(level, { x0, z0, x1, z1, y, deep = 0x0e6a78, shallow = 0x5fd0cf, sky = 0xe8fbff, opacity = 0.62, scale = 1.2, strength = 0.5, swell = 0, segments = 1, sunDir = [0.3, 1, 0.2], sunColor = 0xffffff, glint = 1.2, follow = false }) {
+export function createWater(level, { x0, z0, x1, z1, y, radius = 0, deep = 0x0e6a78, shallow = 0x5fd0cf, sky = 0xe8fbff, opacity = 0.62, scale = 1.2, strength = 0.5, swell = 0, segments = 1, sunDir = [0.3, 1, 0.2], sunColor = 0xffffff, glint = 1.2, follow = false }) {
   const w = x1 - x0, d = z1 - z0;
-  const geo = new THREE.PlaneGeometry(w, d, segments, segments);
+  // round basins get round water so no corner pokes through the rim
+  const geo = radius > 0 ? new THREE.CircleGeometry(radius, 40) : new THREE.PlaneGeometry(w, d, segments, segments);
   geo.rotateX(-Math.PI / 2);
   const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
     time: { value: 0 }, deep: { value: new THREE.Color(deep) }, shallow: { value: new THREE.Color(shallow) },

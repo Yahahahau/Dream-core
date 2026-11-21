@@ -9,7 +9,7 @@ export function openSettings(game, onClose) {
   const slider = (key, min, max, step) => `<input type="range" data-key="${key}" min="${min}" max="${max}" step="${step}" value="${s.data[key]}" />`;
   const tog = (key) => `<button class="toggle ${s.data[key] ? 'on' : ''}" data-toggle="${key}" aria-label="${key}"></button>`;
   body.innerHTML = [
-    row('Graphics', 'Low disables shadows and post effects', seg('quality', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']])),
+    row('Graphics', 'Low (default) is fastest · Medium adds soft shadows & reflections · High adds bloom & sharper shadows', seg('quality', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']])),
     row('Music', 'Dreamcore playlist, shuffled', slider('musicVolume', 0, 1, 0.05)),
     row('Ambience', 'Wind, water, hum', slider('ambienceVolume', 0, 1, 0.05)),
     row('Effects', 'Footsteps, doors', slider('sfxVolume', 0, 1, 0.05)),
@@ -33,6 +33,7 @@ export function openSettings(game, onClose) {
       const key = segEl.dataset.key, v = b.dataset.v;
       segEl.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
       s.set(key, v);
+      if (key === 'quality') s.set('qualityChosen', true);
       game.applySettings(key);
       game.audio.ui('click');
     } else if (b.dataset.toggle) {

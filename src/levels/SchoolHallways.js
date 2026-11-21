@@ -46,7 +46,6 @@ export default class SchoolHallways extends Level {
     // stairwell
     b.wall(-42, 2 + t / 2, -32, 2 + t / 2, -2.4, HT + 2.4, wallM, { thick: t });
     b.wall(-42, -2 - t / 2, -32, -2 - t / 2, -2.4, HT + 2.4, wallM, { thick: t });
-    b.box(-35, -2.6, 0, 14, 0.2, 4, floorM, { ao: false, collide: false });
     b.stairs(-38, 0, -2.4, 4, 12, 0.2, 0.5, '+x', b.mat('stair', { map: concreteTex(0xb7b1a2), texScale: [1, 1] }), { surface: 'concrete' });
     b.floor(-42, -2, -38, 2, -2.4, floorM, { surface: 'tile' });
     b.wall(-42 - t / 2, -2.2, -42 - t / 2, 2.2, -2.4, HT + 2.4, wallM, { thick: t, openings: [{ at: 2.2, w: 1.1, h: 2.15 }] });
@@ -103,8 +102,9 @@ export default class SchoolHallways extends Level {
     classroom(-15, -6, 2.2, 10.5, HT, { board: ['Count the doors', 'on your way home.', 'There is one extra.'] });
     classroom(6, 15, 2.2, 10.5, HT, { board: ['TODAY:', 'remember'] });
     // filler walls between classrooms (music room with no door)
-    b.room(-6 + t / 2, 2.2, 6 - t / 2, 10.5, 0, HT, { wall: wallM, thick: t, skip: ['s'], ceil: ceilM, floor: floorM });
-    b.room(15 + t / 2, 2.2, 26 - t / 2, 10.5, 0, HT, { wall: wallM, thick: t, skip: ['s', 'e'] });
+    // music room between C2 and C3 shares their walls: only its own north wall
+    b.wall(-5.8, 10.5 + t / 2, 5.8, 10.5 + t / 2, 0, HT, wallM, { thick: t });
+    b.wall(15.2, 10.5 + t / 2, 25.9, 10.5 + t / 2, 0, HT, wallM, { thick: t });
     createDoor(this, { x: -21.5, y: 0, z: 2 + t / 2, rotY: Math.PI, kind: 'school', color: 0x9c7a56 });
     createDoor(this, { x: -10.5, y: 0, z: 2 + t / 2, rotY: Math.PI, kind: 'school', color: 0x9c7a56, locked: 'Class is in session. You can hear chalk tapping, very slowly.' });
     createDoor(this, { x: 10.5, y: 0, z: 2 + t / 2, rotY: Math.PI, kind: 'school', color: 0x9c7a56 });
@@ -115,8 +115,8 @@ export default class SchoolHallways extends Level {
     b.floor(-12, -20, 12, -2.2, 0, cf, { surface: 'tile' });
     b.ceiling(-12, -20, 12, -2, 4, ceilM);
     b.box(0, HT, -2.1, 24, 0.8, 0.2, wallM, { collide: false, ao: false });
-    b.wall(-12 - t / 2, -20 - t, -12 - t / 2, -2, 0, 4, wallM, { thick: t });
-    b.wall(12 + t / 2, -20 - t, 12 + t / 2, -2, 0, 4, wallM, { thick: t });
+    b.wall(-12 - t / 2, -20 - t, -12 - t / 2, -2.2, 0, 4, wallM, { thick: t });
+    b.wall(12 + t / 2, -20 - t, 12 + t / 2, -2.2, 0, 4, wallM, { thick: t });
     const cw = [{ at: 4, w: 2.4, h: 1.8, y0: 1 }, { at: 9, w: 2.4, h: 1.8, y0: 1 }, { at: 18, w: 1.1, h: 2.2 }, { at: 21.5, w: 2.4, h: 1.8, y0: 1 }];
     b.wall(-12, -20 - t / 2, 12, -20 - t / 2, 0, 4, wallM, { thick: t, openings: cw });
     cw.filter((o) => o.y0).forEach((o) => b.box(-12 + o.at, o.y0, -20 - t / 2, o.w, o.h, 0.04, winM, { collide: false, stretch: true, ao: false }));

@@ -14,7 +14,7 @@ export function createElevator(level, o) {
   const floorM = b.mat('__elev_floor', { map: concreteTex(0x6d6a66), roughness: 0.6, texScale: [1, 1] });
   // shell
   let p;
-  p = L(0, 0.1); b.box(p[0], y - 0.2, p[1], W + 0.4, 0.2, D + 0.4, floorM, { rotY, surface: 'metal', ao: false });
+  p = L(0, 0); b.box(p[0], y - 0.2, p[1], W + 0.4, 0.2, D + 0.36, floorM, { rotY, surface: 'metal', ao: false });
   p = L(0, -D / 2 - 0.1); b.box(p[0], y, p[1], W + 0.4, H, 0.2, wallM, { rotY, floorY: y, ceilY: y + H });
   p = L(-W / 2 - 0.1, 0); b.box(p[0], y, p[1], 0.2, H, D, wallM, { rotY, floorY: y, ceilY: y + H });
   p = L(W / 2 + 0.1, 0); b.box(p[0], y, p[1], 0.2, H, D, wallM, { rotY, floorY: y, ceilY: y + H });

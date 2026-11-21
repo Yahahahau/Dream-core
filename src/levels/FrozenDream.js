@@ -30,6 +30,7 @@ export function snowH(x, z) {
 
 export default class FrozenDream extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game, H = snowH;
     this.heightAt = H;
     this.terrainSurface = 'snow';
@@ -91,11 +92,11 @@ export default class FrozenDream extends Level {
     // the cabin (enterable)
     const CX = -30, CZ = -22, CY = H(CX, CZ) + 0.3;
     const logs = b.mat('logs', { map: woodTex(0x7a5236, 8, 'logs'), texScale: [2, 2] });
-    b.box(CX, CY - 1.7, CZ, 6.6, 1.7, 5.6, logs, { ao: false, surface: 'wood' });
+    b.box(CX, CY - 1.7, CZ, 6.6, 1.48, 5.6, logs, { ao: false, surface: 'wood' });
     b.box(CX, CY - 0.6, CZ + 3.2, 1.6, 0.3, 0.9, logs, { ao: false, surface: 'wood' });
     b.room(CX - 3, CZ - 2.5, CX + 3, CZ + 2.5, CY, 2.7, { wall: logs, thick: 0.25, floor: b.mat('cabinfloor', { map: woodTex(0xa07a50, 5), texScale: [2, 2] }), surface: 'wood', ceil: logs, openings: { n: [{ at: 3, w: 1.0, h: 2.1 }], e: [{ at: 2.5, w: 1.0, h: 0.9, y0: 1.1 }], w: [{ at: 2.5, w: 1.0, h: 0.9, y0: 1.1 }] } });
     b.add(gableRoofGeo(6.6, 5.6, 2.2, 0.5), b.mat('snowroof', { map: roofTex(0xeef2f8), texScale: [1, 1] }), { x: CX, y: CY + 2.7, z: CZ, rotY: Math.PI / 2, cast: true });
-    createDoor(this, { x: CX, y: CY, z: CZ + 2.5 + 0.125, rotY: 0, color: 0x6a4a30, kind: 'panel' });
+    createDoor(this, { x: CX, y: CY, z: CZ + 2.5 + 0.125, rotY: 0, color: 0x6a4a30, kind: 'panel', wallDepth: 0.25 });
     b.prop([[0, 0, 0, 1.6, 1.4, 0.6, 0x8a8a8a], [0, 0.2, 0.05, 0.9, 0.7, 0.55, 0x1a1210], [0, 1.4, 0, 0.6, 1.3, 0.5, 0x8a8a8a]], CX, CY, CZ - 2.2, 0, { collide: true });
     const fire = new THREE.PointLight(0xff9a40, 6, 9, 1.5); fire.position.set(CX, CY + 0.6, CZ - 1.6); this.group.add(fire);
     const fireGlow = halo(this, CX, CY + 0.55, CZ - 1.85, 1.2, '#ff9a40', 0.9);
@@ -110,8 +111,8 @@ export default class FrozenDream extends Level {
     // the distant door on the hill, glowing warm
     const dy = H(DX, DZ);
     createDoor(this, { x: DX, y: dy - 0.02, z: DZ, rotY: Math.PI * 0.12, freeStanding: true, color: 0xffd8a8, kind: 'panel', target: { level: 'anemoia', spawn: 'default' }, glimpse: 0xffb080, label: 'Go towards the warm light' });
-    const lamp = halo(this, DX, dy + 1.2, DZ - 0.4, 10, '#ffb070', 0.45);
-    this.onUpdate((dt, t) => { lamp.material.opacity = 0.38 + Math.sin(t * 0.8) * 0.07; });
+    const lamp = halo(this, DX - Math.sin(Math.PI * 0.12) * 0.8, dy + 1.2, DZ - Math.cos(Math.PI * 0.12) * 0.8, 6, '#ffb070', 0.35);
+    this.onUpdate((dt, t) => { const dd = this.game.camera.position.distanceTo(lamp.position); lamp.material.opacity = (0.3 + Math.sin(t * 0.8) * 0.06) * Math.min(1, Math.max(0.15, (dd - 3) / 25)); });
     const beacon = new THREE.PointLight(0xffa060, 18, 30, 1.5); beacon.position.set(DX, dy + 2, DZ + 1); this.group.add(beacon);
     addExamine(this, hitbox(this, 6, H(6, -110), -110, 3, 2, 3), { name: 'Footprints', text: 'Fresh footprints in your size, walking ahead of you towards the hill. They never come back.', notes: 'Frozen Dream', prompt: 'Look at the snow' });
 

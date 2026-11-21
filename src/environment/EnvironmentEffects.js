@@ -156,7 +156,7 @@ function instance(level, geo, mat, list, cast) {
   const mesh = new THREE.InstancedMesh(geo, mat, list.length);
   const d = new THREE.Object3D();
   list.forEach((t, i) => { d.position.set(t[0], t[1], t[2]); d.rotation.set(0, t[3] || 0, 0); d.scale.setScalar(t[4] || 1); d.updateMatrix(); mesh.setMatrixAt(i, d.matrix); });
-  mesh.castShadow = cast && quality.level !== 'low';
+  mesh.castShadow = cast;
   mesh.receiveShadow = true;
   mesh.computeBoundingSphere();
   level.group.add(mesh);

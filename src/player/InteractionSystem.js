@@ -27,8 +27,11 @@ export class InteractionSystem {
         if (!o) continue;
         const it = o.userData.interactable;
         if (h.distance > (it.range ?? 2.8)) continue;
-        const p = h.point, c = cam.position;
-        if (this.game.collision.segmentBlocked(c.x, c.y, c.z, p.x, p.y, p.z)) break;
+        // test line of sight up to just before the hit point, ignoring the target's own colliders
+        const c = cam.position, p = h.point;
+        const d = Math.max(0.01, h.distance), k = Math.max(0, (d - 0.3) / d);
+        const ex = c.x + (p.x - c.x) * k, ey = c.y + (p.y - c.y) * k, ez = c.z + (p.z - c.z) * k;
+        if (this.game.collision.segmentBlocked(c.x, c.y, c.z, ex, ey, ez, it.colliders ? new Set(it.colliders) : null)) break;
         found = it; break;
       }
     }

@@ -16,6 +16,7 @@ const MESSAGES = ['YOU HAVE BEEN HERE.', 'THIS ROOM IS NOT EMPTY.', 'PLEASE REMA
 
 export default class BrokenReality extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game;
     this.neighbors = ['hallways', 'starting', 'frozen'];
     this.surface = 'tile';
@@ -27,7 +28,7 @@ export default class BrokenReality extends Level {
     const carpet = b.mat('bcarpet', { map: carpetTex('mall'), texScale: [2, 2] });
 
     // ---------- platforms ----------
-    const plat = (x, y, z, w, d, top = chk) => { b.box(x, y - 1.2, z, w, 1.2, d, side, { ao: false }); b.box(x, y - 0.001, z, w, 0.02, d, top, { collide: false, ao: false }); };
+    const plat = (x, y, z, w, d, top = chk) => { b.box(x, y - 1.2, z, w, 1.17, d, side, { ao: false, collide: false }); b.box(x, y - 0.03, z, w - 0.04, 0.03, d - 0.04, top, { collide: false, ao: false }); this.addCollider(x - w / 2, y - 1.2, z - d / 2, x + w / 2, y, z + d / 2); };
     plat(0, 0, 0, 26, 26);
     plat(25, 0, 0, 24, 2.4);           // walkway east
     plat(46, 0, 0, 18, 18, chk2);      // garden island
@@ -36,7 +37,7 @@ export default class BrokenReality extends Level {
 
     // ---------- the office of CRTs ----------
     const ox0 = -12, ox1 = -1, oz0 = -12, oz1 = -2;
-    b.box((ox0 + ox1) / 2, 0.001, (oz0 + oz1) / 2, ox1 - ox0, 0.02, oz1 - oz0, carpet, { collide: false, ao: false });
+    b.box((ox0 + ox1) / 2, 0, (oz0 + oz1) / 2, ox1 - ox0, 0.025, oz1 - oz0, carpet, { collide: false, ao: false });
     b.wall(ox0, oz0 - 0.1, ox1, oz0 - 0.1, 0, 3, office, { thick: 0.2 });
     b.wall(ox0 - 0.1, oz0, ox0 - 0.1, oz1, 0, 3, office, { thick: 0.2, openings: [{ at: 5, w: 1.8, h: 1.2, y0: 1 }] });
     b.wall(ox0, oz1 + 0.1, ox0 + 5, oz1 + 0.1, 0, 3, office, { thick: 0.2 });
@@ -112,7 +113,7 @@ export default class BrokenReality extends Level {
 
     // ---------- garden island: the white house that is watched ----------
     const GX = 46, GZ = 0;
-    b.box(GX, 0.001, GZ, 17.6, 0.03, 17.6, b.mat('bgrass', { map: grassTex(0x5aa040, 'weirdgrass'), texScale: [3, 3] }), { collide: false, ao: false, surface: 'grass' });
+    b.box(GX, 0, GZ, 17.6, 0.03, 17.6, b.mat('bgrass', { map: grassTex(0x5aa040, 'weirdgrass'), texScale: [3, 3] }), { collide: false, ao: false, surface: 'grass' });
     house(this, { x: GX + 1, z: GZ - 4, y: 0, rotY: -Math.PI / 2, w: 5, d: 4.5, h: 4.6, floors: 2, wall: 0xf2f2f0, roof: 0x5a5a5e, sky: 0x101018 });
     const eyesWall = new THREE.Mesh(new THREE.PlaneGeometry(40, 18), new THREE.MeshBasicMaterial({ map: eyesPatternTex(), fog: false }));
     eyesWall.material.map = eyesWall.material.map.clone(); eyesWall.material.map.needsUpdate = true; eyesWall.material.map.repeat.set(3, 1.4);

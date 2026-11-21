@@ -8,6 +8,7 @@ import { halo } from '../environment/EnvironmentEffects.js';
 import { createDoor } from '../interaction/Door.js';
 import { addExamine, addNote, addPortal, hitbox, yawTo } from '../interaction/Interactable.js';
 import { makeMaterial } from '../core/Materials.js';
+import { railing } from '../core/Architecture.js';
 
 const FH = 3; // floor-to-floor height
 
@@ -75,7 +76,7 @@ export default class VintageApartments extends Level {
       b.stairs(17, 1.5, y, 2, 8, 0.1875, 0.5, '+z', stairM, { surface: 'wood', slab: 0.35 });
       b.box(18, y + 1.5 - 0.3, 7, 4, 0.3, 3, conc, { surface: 'concrete', ao: false });
       b.stairs(19, 5.5, y + 1.5, 2, 8, 0.1875, 0.5, '-z', stairM, { surface: 'wood', slab: 0.35 });
-      b.box(18, y, 3.5, 0.08, 2.6, 4, rail, { collide: true, ao: false, tint: 0x888888 });
+      b.box(18, y, 3.5, 0.08, 2.6, 3.8, rail, { collide: true, ao: false, tint: 0x888888 });
       halo(this, 18, y + FH - 0.5, 4.5, 1.1, '#ffe0b0', 0.6);
     }
     b.wall(16 + t / 2, 1.5, 16 + t / 2, 9, 0, TOP, hallWall, { thick: t });
@@ -89,7 +90,7 @@ export default class VintageApartments extends Level {
     for (let f = 0; f < 3; f++) {
       const y = f * FH, hz1 = 1.8;
       // hallway north wall with two doors
-      b.wall(0, hz1 + t / 2, 16, hz1 + t / 2, y, FH - 0.3, hallWall, { thick: t, openings: [{ at: 6, w: 0.95, h: 2.1 }, { at: 10, w: 0.95, h: 2.1 }] });
+      b.wall(0, hz1 + t / 2, 16, hz1 + t / 2, y, FH - 0.3, hallWall, { thick: t, openings: [{ at: 6, w: 1.0, h: 2.12 }, { at: 10, w: 1.0, h: 2.12 }] });
       b.box(8, y + 0.01, 0.9, 15.6, 0.01, 1.2, b.mat('runner', { map: carpetTex('hotel'), texScale: [1.2, 1.2] }), { collide: false, ao: false, tint: 0xbb9988 });
       halo(this, 4, y + FH - 0.45, 0.9, 1, '#ffe2b8', 0.6); halo(this, 12, y + FH - 0.45, 0.9, 1, '#ffe2b8', 0.6);
       b.prop([[0, 0, 0, 0.3, 0.06, 0.3, 0xf2e2c0, 'cyl']], 4, y + FH - 0.36, 0.9, 0, { blob: false }); b.prop([[0, 0, 0, 0.3, 0.06, 0.3, 0xf2e2c0, 'cyl']], 12, y + FH - 0.36, 0.9, 0, { blob: false });
@@ -111,7 +112,7 @@ export default class VintageApartments extends Level {
     b.box(10, -0.3, -2.4, 90, 0.45, 4.6, side, { surface: 'concrete', ao: false });
     b.floor(-35, -14, 55, -4.7, 0, b.mat('road', { map: asphaltTex(0x55555c), texScale: [6, 6] }), { surface: 'concrete' });
     b.box(10, -0.3, -16.3, 90, 0.45, 4.6, side, { surface: 'concrete', ao: false });
-    for (let x = -30; x < 55; x += 6) b.box(x, 0.001, -9.35, 2.5, 0.01, 0.15, b.mat('roadline', { color: 0xf2e6c0, roughness: 0.8 }), { collide: false, ao: false });
+    for (let x = -30; x < 55; x += 6) b.box(x, 0, -9.35, 2.5, 0.022, 0.15, b.mat('roadline', { color: 0xf2e6c0, roughness: 0.8 }), { collide: false, ao: false });
     // opposite facades
     const fac = [['#c98a6a', 1], ['#d8c098', 2], ['#9aa8b8', 3], ['#c8a0a8', 4], ['#a8b890', 5], ['#d6b080', 6]];
     for (let i = 0; i < 6; i++) {
@@ -131,7 +132,7 @@ export default class VintageApartments extends Level {
     // dead-end façades at both ends of the street
     const endM = b.mat('ends', { map: brickTex(0x8a5a4a, 0xc8bca8), texScale: [2, 2] });
     b.box(-36, 0, -10, 1, 14, 20, endM); b.box(56, 0, -10, 1, 14, 20, endM);
-    for (const x of [-20, 0, 20, 40]) streetLamp(this, x, 0.15, -0.6, -Math.PI / 2 * 1, { on: true, light: x === 0 });
+    for (const x of [-20, 0, 20, 40]) streetLamp(this, x, 0.15, -0.6, Math.PI / 2, { on: true, light: x === 0 });
     b.prop([[0, 0.3, 0, 4.2, 0.7, 1.8, 0x8fb0c8], [0.2, 1.0, 0, 2.2, 0.6, 1.6, 0x8fb0c8], [-1.3, 0, 0.8, 0.6, 0.6, 0.2, 0x222222, 'cyl'], [1.3, 0, 0.8, 0.6, 0.6, 0.2, 0x222222, 'cyl'], [-1.3, 0, -0.8, 0.6, 0.6, 0.2, 0x222222, 'cyl'], [1.3, 0, -0.8, 0.6, 0.6, 0.2, 0x222222, 'cyl']], 12, 0, -6, 0, { collide: true });
     // town beyond the balconies
     for (let i = 0; i < 26; i++) {
@@ -165,7 +166,7 @@ export default class VintageApartments extends Level {
     b.wall(mx(0), 5, mx(3.2), 5, y, FH - 0.3, u.wp, { thick: 0.12 });
     // inner wallpaper skins (no collision)
     const doorX0 = u.mirror ? 10 : 6;
-    b.wall(x0 + 0.05, z0 + 0.02, x1 - 0.05, z0 + 0.02, y, FH - 0.3, u.wp, { thick: 0.02, collide: false, openings: [{ at: doorX0 - x0 - 0.05, w: 0.95, h: 2.1 }] });
+    b.wall(x0 + 0.05, z0 + 0.02, x1 - 0.05, z0 + 0.02, y, FH - 0.3, u.wp, { thick: 0.02, collide: false, openings: [{ at: doorX0 - x0 - 0.05, w: 1.18, h: 2.2 }] });
     const nOps = (u.mirror ? [[9.6, 1.0, 1.3, 1.0], [12.4, 1.2, 2.2, 0], [14.5, 1.0, 1.3, 1.0]] : [[1.5, 1.0, 1.3, 1.0], [3.6, 1.2, 2.2, 0], [6.4, 1.0, 1.3, 1.0]]).map(([x, w, h, y0]) => ({ at: x - x0, w, h, y0 }));
     b.wall(x0, z1 - 0.02, x1, z1 - 0.02, y, FH - 0.3, u.wp, { thick: 0.02, collide: false, openings: nOps });
     // door from the hallway
@@ -175,10 +176,10 @@ export default class VintageApartments extends Level {
     texturedPlane(this, textTex(u.label, { w: 128, h: 64, bg: '#d4a649', fg: '#2a1a10', font: 'bold 42px Georgia, serif' }), doorX + (u.mirror ? -0.72 : 0.72), y + 1.6, 1.8 - 0.01, 0.2, 0.1, Math.PI);
     // balcony
     const bx = mx(3.6);
-    b.box(bx, y - 0.25, z1 + 0.9, 3, 0.25, 1.6, b.mat('balc', { map: concreteTex(0xc8c0b0) }), { surface: 'concrete', ao: false });
-    b.box(bx, y, z1 + 1.68, 3, 1.0, 0.05, rail, {});
-    b.box(bx - 1.48, y, z1 + 0.9, 0.05, 1.0, 1.6, rail, {});
-    b.box(bx + 1.48, y, z1 + 0.9, 0.05, 1.0, 1.6, rail, {});
+    b.box(bx, y - 0.25, z1 + 1.0, 3, 0.25, 1.6, b.mat('balc', { map: concreteTex(0xc8c0b0) }), { surface: 'concrete', ao: false });
+    railing(b, bx - 1.45, z1 + 0.25, bx - 1.45, z1 + 1.75, y, { railMat: rail, postMat: rail, spacing: 0.75 });
+    railing(b, bx - 1.45, z1 + 1.75, bx + 1.45, z1 + 1.75, y, { railMat: rail, postMat: rail, spacing: 0.75 });
+    railing(b, bx + 1.45, z1 + 1.75, bx + 1.45, z1 + 0.25, y, { railMat: rail, postMat: rail, spacing: 0.75 });
     b.prop(F.plant(0xb86a4a, 0x5a8a4a), bx + 1.1 * m, y, z1 + 1.2, 0);
     // ceiling lamp
     halo(this, mx(5.5), y + FH - 0.6, 6, 1.3, '#ffdcae', 0.55);

@@ -25,6 +25,11 @@ All environment assets in v1.0 are **generated procedurally in code** for this p
 snow, ice, signage, retro desktop dialogs (original design), eyes, clouds, skies, water and
 caustics. No third-party texture or model files are bundled.
 
+v1.1 adds an architecture kit (`src/core/Architecture.js`: railings, pillars, window units,
+gable roofs, stair flights, contact shading) and bevelled furniture using three.js'
+`RoundedBoxGeometry` (MIT). External GLB libraries were again unreachable from the build
+environment, so all models remain procedural and share one consistent style.
+
 External sources recommended in the design brief (Poly Haven, ambientCG — both CC0;
 Quaternius, Kenney — check each pack) could not be reached from the build environment, so
 procedural replacements were made as the brief allows. Any downloaded asset added later must

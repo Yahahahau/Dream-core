@@ -13,7 +13,7 @@ export function makeMaterial(o = {}) {
     opacity: o.opacity ?? 1,
     side: o.side ?? THREE.FrontSide,
     alphaTest: o.alphaTest ?? 0,
-    depthWrite: o.depthWrite ?? true,
+    depthWrite: o.depthWrite ?? !(o.transparent ?? false),
     fog: o.fog ?? true,
   };
   let m;

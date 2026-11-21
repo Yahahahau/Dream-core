@@ -9,6 +9,7 @@ import { fluorescent, halo, floater } from '../environment/EnvironmentEffects.js
 import { createDoor } from '../interaction/Door.js';
 import { addExamine, addNote, hitbox, yawTo } from '../interaction/Interactable.js';
 import { makeMaterial } from '../core/Materials.js';
+import { railing, pillar } from '../core/Architecture.js';
 
 export default class Poolrooms extends Level {
   build() {
@@ -17,6 +18,7 @@ export default class Poolrooms extends Level {
     this.surface = 'tile';
     const T = b.mat('tile', { map: tileTex({ tile: 0xf4f7f7, grout: 0xc4d2d4, n: 8 }), roughness: 0.25, texScale: [2, 2], envMapIntensity: 1.2 });
     const TB = b.mat('tileblue', { map: tileTex({ tile: 0xbfe7ee, grout: 0x8fc4cc, n: 8, key: 'pool' }), roughness: 0.2, texScale: [2, 2] });
+    const rail = b.mat('rail', { color: 0xdfe6ea, roughness: 0.3, metalness: 0.5 });
     const TS = b.mat('tilestripe', { map: tileTex({ tile: 0x3fa7b8, grout: 0x2f8a99, n: 8, key: 'stripe' }), roughness: 0.25, texScale: [2, 2] });
     const ceil = b.mat('pceil', { color: 0xf4f8f8, roughness: 0.9 });
 
@@ -31,12 +33,13 @@ export default class Poolrooms extends Level {
     const basin = (x0, z0, x1, z1, top, depth) => {
       const bot = top - depth;
       b.floor(x0, z0, x1, z1, bot, TB, { surface: 'water', thick: 0.3 });
-      b.box((x0 + x1) / 2, bot, z0 - 0.1, x1 - x0 + 0.4, depth, 0.2, TB, { ao: true });
-      b.box((x0 + x1) / 2, bot, z1 + 0.1, x1 - x0 + 0.4, depth, 0.2, TB, { ao: true });
-      b.box(x0 - 0.1, bot, (z0 + z1) / 2, 0.2, depth, z1 - z0, TB, { ao: true });
-      b.box(x1 + 0.1, bot, (z0 + z1) / 2, 0.2, depth, z1 - z0, TB, { ao: true });
+      const wallH = Math.max(0.05, depth - 0.2);
+      b.box((x0 + x1) / 2, bot, z0 - 0.1, x1 - x0 + 0.4, wallH, 0.2, TB, { ao: true });
+      b.box((x0 + x1) / 2, bot, z1 + 0.1, x1 - x0 + 0.4, wallH, 0.2, TB, { ao: true });
+      b.box(x0 - 0.1, bot, (z0 + z1) / 2, 0.2, wallH, z1 - z0, TB, { ao: true });
+      b.box(x1 + 0.1, bot, (z0 + z1) / 2, 0.2, wallH, z1 - z0, TB, { ao: true });
       // dark stripe lane markers on the bottom
-      for (let x = x0 + 2; x < x1 - 1; x += 3) b.box(x, bot, (z0 + z1) / 2, 0.25, 0.01, z1 - z0 - 2, TS, { collide: false, ao: false });
+      for (let x = x0 + 2; x < x1 - 1; x += 3) b.box(x, bot, (z0 + z1) / 2, 0.25, 0.025, z1 - z0 - 2, TS, { collide: false, ao: false });
       // edge coping
       for (const [cx, cz, w, d] of [[(x0 + x1) / 2, z0 - 0.25, x1 - x0 + 1, 0.5], [(x0 + x1) / 2, z1 + 0.25, x1 - x0 + 1, 0.5], [x0 - 0.25, (z0 + z1) / 2, 0.5, z1 - z0], [x1 + 0.25, (z0 + z1) / 2, 0.5, z1 - z0]]) b.box(cx, top, cz, w, 0.03, d, TS, { collide: false, ao: false });
     };
@@ -108,20 +111,21 @@ export default class Poolrooms extends Level {
 
     // ================= RAISED POOL (north) =================
     const RY = 3;
-    b.box(0, 0, 21.5, 32, RY, 3, T, { surface: 'tile' });
-    b.box(0, 0, 32.5, 32, RY, 3, T, { surface: 'tile' });
-    b.box(-13, 0, 27, 6, RY, 8, T, { surface: 'tile' });
-    b.box(13, 0, 27, 6, RY, 8, T, { surface: 'tile' });
+    // structure: base blocks stop where the basin walls start, a holed deck slab on top
+    b.box(0, 0, 21.4, 32, RY - 0.2, 2.8, T, { surface: 'tile' });
+    b.box(0, 0, 32.6, 32, RY - 0.2, 2.8, T, { surface: 'tile' });
+    b.box(-13.1, 0, 27, 5.8, RY - 0.2, 8.4, T, { surface: 'tile' });
+    b.box(13.1, 0, 27, 5.8, RY - 0.2, 8.4, T, { surface: 'tile' });
     b.box(0, 0, 27, 20, RY - 1.5, 8, TB, { collide: false, ao: false });
+    holed(-16, 20, 16, 34, -10, 23, 10, 31, RY);
     basin(-10, 23, 10, 31, RY, 1.2);
     b.stairs(7, 27, RY - 1.2, 3, 6, 0.2, 0.5, '+x', TB, { surface: 'tile' });
     createWater(this, { x0: -10, z0: 23, x1: 10, z1: 31, y: RY - 0.12, opacity: 0.55, sky: 0xeefcff });
     addCaustics(this, -10, 23, 10, 31, RY - 1.2, { strength: 0.3 });
     b.stairs(0, 12, 0, 6, 15, 0.2, 0.533, '+z', T, { surface: 'tile' });
     for (const x of [-3.1, 3.1]) b.box(x, 0, 16, 0.2, 3.9, 8, T, { tint: 0xe6f2f2 });
-    const rail = b.mat('rail', { color: 0xdfe6ea, roughness: 0.3, metalness: 0.5 });
-    b.box(-9.5, RY, 20.1, 13, 1.0, 0.08, rail, {});
-    b.box(9.5, RY, 20.1, 13, 1.0, 0.08, rail, {});
+    railing(b, -15.8, 20.15, -3.3, 20.15, RY, { railMat: rail, postMat: rail, infill: 'bars' });
+    railing(b, 3.3, 20.15, 15.8, 20.15, RY, { railMat: rail, postMat: rail, infill: 'bars' });
     b.ceiling(-16, 20, 16, 34, 10, ceil);
     b.wall(-16, 34.1, 16, 34.1, 0, 10, T, { thick: 0.2 });
     b.wall(-16.1, 20, -16.1, 34.2, 0, 10, T, { thick: 0.2 });
@@ -136,14 +140,14 @@ export default class Poolrooms extends Level {
     const slide = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, 0.55, 12, false), makeMaterial({ color: 0x7fd0f0, transparent: true, opacity: 0.55, side: THREE.DoubleSide, roughness: 0.1, vertexColors: false }));
     this.group.add(slide);
     this.disposables.push(slide.geometry, slide.material);
-    b.prop([[0, 0, 0, 0.2, RY + 1.0, 0.2, 0xf2f2f2, 'cyl']], 14, 0, 22, 0, { collide: true, blob: false });
+    b.prop([[0, 0, 0, 0.2, 1.0, 0.2, 0xf2f2f2, 'cyl']], 14, RY, 22, 0, { collide: true, blob: false });
     b.prop([[0, 0, 0, 0.2, 2.2, 0.2, 0xf2f2f2, 'cyl']], 6, 0, 13, 0, { collide: true, blob: false });
 
     // ================= TUNNEL =================
     const tz0 = -3.7, tz1 = -0.7;
     b.floor(16, tz0, 40, tz1, 0, T, { surface: 'tile' });
-    b.wall(16, tz0 - 0.1, 40, tz0 - 0.1, 0, 3.2, T, { thick: 0.2 });
-    b.wall(16, tz1 + 0.1, 40, tz1 + 0.1, 0, 3.2, T, { thick: 0.2 });
+    b.wall(16.2, tz0 - 0.1, 39.8, tz0 - 0.1, 0, 3.2, T, { thick: 0.2 });
+    b.wall(16.2, tz1 + 0.1, 39.8, tz1 + 0.1, 0, 3.2, T, { thick: 0.2 });
     const vault = new THREE.CylinderGeometry(1.5, 1.5, 24, 16, 1, true, 0, Math.PI);
     vault.rotateZ(Math.PI / 2);
     { const uv = vault.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 3, uv.getY(i) * 12); }
@@ -151,7 +155,7 @@ export default class Poolrooms extends Level {
     b.add(vault, vm, { x: 28, y: 3.2, z: (tz0 + tz1) / 2 });
     b.ceiling(16, tz0, 40, tz1, 4.7, ceil);
     // shallow channel of water down the middle
-    b.box(28, -0.001, -2.2, 24, 0.002, 0.6, TS, { collide: false, ao: false });
+    b.box(28, 0, -2.2, 23.6, 0.025, 0.6, TS, { collide: false, ao: false });
     for (let x = 19; x < 40; x += 5) fluorescent(this, x, 4.6, -2.2, { w: 0.4, d: 0.8, color: 0xbdeff2, flicker: x === 34 });
     texturedPlane(this, textTex('DEEP END →', { w: 256, h: 64, bg: '#2f8a99', fg: '#fff', font: 'bold 34px sans-serif' }), 18, 2.4, tz1 - 0.01 + 0.0, 1.1, 0.27, Math.PI);
 
@@ -162,17 +166,14 @@ export default class Poolrooms extends Level {
     createWater(this, { x0: 44, z0: -10, x1: 58, z1: 8, y: -0.25, opacity: 0.45, shallow: 0x2fb5b8, deep: 0x05484f, sky: 0x9ad6dc });
     addCaustics(this, 44, -10, 58, 8, -5, { strength: 0.45, color: 0x6ff6ff });
     const glass = b.mat('dglass', { color: 0xd6f4f6, transparent: true, opacity: 0.25, roughness: 0.05 });
-    for (const [cx, cz, w, d] of [[51, -10.6, 15.2, 0.06], [51, 8.6, 15.2, 0.06], [43.4, -1, 0.06, 19.2], [58.6, -1, 0.06, 19.2]]) {
-      b.box(cx, 0, cz, w, 1.05, d, glass, { ao: false });
-      b.box(cx, 1.0, cz, w + 0.04, 0.06, d + 0.04, rail, { collide: false, ao: false });
-    }
+    for (const [ax, az, bx, bz] of [[43.4, -10.6, 58.6, -10.6], [58.6, 8.6, 43.4, 8.6], [43.4, 8.6, 43.4, -10.6], [58.6, -10.6, 58.6, 8.6]]) railing(b, ax, az, bx, bz, 0, { glass, railMat: rail, postMat: rail });
     const under = new THREE.PointLight(0x5ff0ff, 30, 22, 1.4); under.position.set(51, -3.5, -1); this.group.add(under);
     b.ceiling(D.x0, D.z0, D.x1, D.z1, 12, b.mat('dceil', { color: 0xc8d8d8, roughness: 1 }));
     b.wall(D.x0, D.z0 - 0.1, D.x1, D.z0 - 0.1, 0, 12, T, { thick: 0.2 });
     b.wall(D.x0, D.z1 + 0.1, D.x1, D.z1 + 0.1, 0, 12, T, { thick: 0.2 });
     b.wall(D.x1 + 0.1, D.z0 - 0.2, D.x1 + 0.1, D.z1 + 0.2, 0, 12, T, { thick: 0.2 });
     b.wall(D.x0 - 0.1, D.z0 - 0.2, D.x0 - 0.1, D.z1 + 0.2, 0, 12, T, { thick: 0.2, openings: [{ at: 0.2 + (tz0 - D.z0) + 1.5, w: 3, h: 3.2 }] });
-    for (const [x, z] of [[42, -12], [60, -12], [42, 10], [60, 10]]) b.box(x, 0, z, 1, 12, 1, T, {});
+    for (const [x, z] of [[42, -12], [60, -12], [42, 10], [60, 10]]) pillar(b, x, 0, z, 12, { size: 0.9, mat: T, trim: TS });
     b.prop(F.bench(0xf2f2f2, 0xc0c8cc), 51, 0, 10.8, Math.PI, { collide: true });
     addNote(this, hitbox(this, 51, 0.45, 10.8, 1.8, 0.3, 0.5), { title: 'Wet paper on the bench', text: 'This pool is deeper than the building.\nI tried to touch the bottom.\nThe light down there is warm.\nDo not stay too long.' });
     const orb = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), new THREE.MeshBasicMaterial({ color: 0xbff8ff }));
@@ -203,9 +204,9 @@ export default class Poolrooms extends Level {
 
     // brightness zones: bright public halls vs quiet tunnel / chamber
     this.setLightZones([
-      { min: [16.2, -5, -6], max: [40, 5, 2], hemi: 0.95, exposure: 1.0 },
-      { min: [40, -6, -15], max: [63, 13, 13], hemi: 0.55, exposure: 1.1 },
-    ], { hemi: 1.75, exposure: 1.05 });
+      { min: [16.2, -5, -6], max: [40, 5, 2], hemi: 0.8, exposure: 1.0 },
+      { min: [40, -6, -15], max: [63, 13, 13], hemi: 0.5, exposure: 1.1 },
+    ], { hemi: 1.38, exposure: 1.05 });
 
     const pool = new THREE.Object3D(); pool.position.set(0, 0, -2); this.group.add(pool);
     g.audio.positional(pool, { kind: 'water', volume: 0.25, ref: 5, filter: ['lowpass', 900] });

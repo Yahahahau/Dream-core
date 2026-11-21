@@ -1,6 +1,7 @@
 // Shared environment pieces: houses, roofs, fences, poles, lamps and furniture.
 import * as THREE from 'three';
-import { sidingTex, roofTex, windowTex, fenceTex, doorTex, glowTex } from '../../utils/Textures.js';
+import { sidingTex, roofTex, windowTex, fenceTex, doorTex, glowTex, concreteTex, woodTex, brickTex } from '../../utils/Textures.js';
+import { windowUnit, gableRoof } from '../../core/Architecture.js';
 import { makeMaterial } from '../../core/Materials.js';
 
 export function gableRoofGeo(w, d, rise, over = 0.35) {
@@ -11,52 +12,77 @@ export function gableRoofGeo(w, d, rise, over = 0.35) {
   return g;
 }
 
-// Exterior of a house. Returns helpers in house-local space.
+// Exterior of a house built from the architecture kit:
+// foundation plinth → siding walls → corner boards & frieze → window units →
+// door with casing and step → gable roof with eaves, fascia and ridge → chimney.
 export function house(level, o) {
   const b = level.b;
   const { x, z, y = 0, w = 7, d = 6, h = 5.4, rotY = 0, wall = 0xe7dcc4, roof = 0x7a4a3a, trim = 0xffffff, door = 0x8a6a4a,
-    floors = 2, windows = true, chimney = false, roofRise = 2.6, collide = true, frontDoor = true, sky = 0x5a6f88, porch = false, garage = false } = o;
-  const c = Math.cos(rotY), s = Math.sin(rotY);
-  const L = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    floors = 2, windows = true, chimney = false, roofRise = 2.6, collide = true, frontDoor = true, sky = 0x5a6f88, porch = false, garage = false, shutters = null } = o;
+  const L = (lx, lz) => [x + lx * Math.cos(rotY) + lz * Math.sin(rotY), z - lx * Math.sin(rotY) + lz * Math.cos(rotY)];
   const wm = b.mat('siding' + wall, { map: sidingTex(wall), roughness: 0.85, texScale: [2, 2] });
   const rm = b.mat('roof' + roof, { map: roofTex(roof), roughness: 0.9, texScale: [1, 1] });
-  const tm = b.mat('trim' + trim, { color: trim, roughness: 0.6 });
-  const winM = b.mat('win' + sky, { map: windowTex(trim, sky, 4), roughness: 0.2, texScale: [1, 1] });
-  const dm = b.mat('hdoor' + door, { map: doorTex(door, 'panel'), roughness: 0.6 });
-  // body (sunk a little into the ground to sit on slopes)
-  b.box(x, y - 1.2, z, w, h + 1.2, d, wm, { rotY, collide, floorY: y, aoStrength: 0.35 });
-  // roof
-  const rg = gableRoofGeo(w, d, roofRise);
-  b.add(rg, rm, { x, y: y + h, z, rotY: rotY + Math.PI / 2 * 0, cast: true });
-  // gable ends are part of the roof prism; trim boards
-  const tb = (lx, ly, lz, bw, bh, bd) => { const p = L(lx, lz); b.box(p[0], y + ly, p[1], bw, bh, bd, tm, { rotY, collide: false, ao: false }); };
-  tb(0, h - 0.12, d / 2 + 0.03, w + 0.1, 0.16, 0.08);
-  tb(0, h - 0.12, -d / 2 - 0.03, w + 0.1, 0.16, 0.08);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) tb(sx * (w / 2 + 0.02), 0, sz * (d / 2 + 0.02), 0.14, h, 0.14);
-  if (chimney) { const p = L(w * 0.25, -d * 0.1); b.box(p[0], y + h, p[1], 0.6, roofRise + 0.9, 0.6, tm, { rotY, collide: false, tint: 0xd8d0c8 }); }
-  // windows on front/back and sides
-  const win = (lx, ly, lz, ww, wh, face) => {
-    const p = L(lx, lz);
-    const ww2 = face === 'side' ? 0.06 : ww, wd = face === 'side' ? ww : 0.06;
-    b.box(p[0], y + ly, p[1], ww2, wh, wd, winM, { rotY, collide: false, ao: false, stretch: true });
+  const tm = b.mat('trim' + trim, { color: trim, roughness: 0.55 });
+  const fm = b.mat('found', { map: concreteTex(0xb8b2a6), roughness: 0.95, texScale: [1.5, 1.5] });
+  const glass = b.mat('glass' + sky, { map: windowTex(0x222222, sky, 1), roughness: 0.08, emissive: sky, emissiveIntensity: sky === 0x5a6f88 ? 0.05 : 0.55, texScale: [1, 1] });
+  const dm = b.mat('hdoor' + door, { map: doorTex(door, 'panel'), roughness: 0.55 });
+  const shm = shutters ? b.mat('shut' + shutters, { color: shutters, roughness: 0.7 }) : null;
+  const PL = 0.35; // visible plinth height
+  // 1. foundation (sunk into the ground so slopes never show a gap)
+  b.box(x, y - 1.4, z, w + 0.16, 1.4 + PL, d + 0.16, fm, { rotY, collide: false, floorY: y, aoStrength: 0.25 });
+  // 2-3. walls
+  b.box(x, y + PL, z, w, h - PL, d, wm, { rotY, collide: false, floorY: y, aoStrength: 0.3 });
+  if (collide) level.addOBB(x, y - 1.4, z, w + 0.16, h + 1.4, d + 0.16, rotY);
+  // 7. corner boards and frieze band (stand 3 cm proud of the siding)
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const p = L(sx * w / 2, sz * d / 2); b.box(p[0], y + PL, p[1], 0.16, h - PL - 0.2, 0.16, tm, { rotY, collide: false, ao: false }); }
+  { const p = L(0, 0); b.box(p[0], y + h - 0.24, p[1], w + 0.08, 0.2, d + 0.08, tm, { rotY, collide: false, ao: false }); }
+  // 4. windows (surface-mounted units on a solid body)
+  const unit = (lx, ly, face, ww = 0.9, wh = 1.25) => {
+    wh = Math.min(wh, h - 0.42 - ly); // keep the head casing below the frieze
+    if (wh < 0.5) return;
+    const rot = rotY + { front: 0, back: Math.PI, right: Math.PI / 2, left: -Math.PI / 2 }[face];
+    const off = { front: [lx, d / 2], back: [-lx, -d / 2], right: [w / 2, -lx], left: [-w / 2, lx] }[face];
+    const p = L(off[0], off[1]);
+    windowUnit(b, p[0], y + ly, p[1], ww, wh, rot, { frameMat: tm, glassMat: glass, recess: 0.008, shutters: shm });
   };
   if (windows) {
     const cols = Math.max(2, Math.round(w / 2.4));
+    const fh = (h - PL) / floors;
     for (let f = 0; f < floors; f++) {
-      const ly = 0.9 + f * (h / floors);
+      const ly = PL + 0.8 + f * fh;
       for (let i = 0; i < cols; i++) {
         const lx = -w / 2 + (i + 0.5) * (w / cols);
         if (f === 0 && frontDoor && Math.abs(lx) < 0.9) continue;
-        win(lx, ly, d / 2 + 0.01, 0.9, 1.2, 'front');
-        win(lx, ly, -d / 2 - 0.01, 0.9, 1.2, 'back');
+        unit(lx, ly, 'front'); unit(lx, ly, 'back');
       }
-      win(w / 2 + 0.01, ly, 0, 0.9, 1.2, 'side');
-      win(-w / 2 - 0.01, ly, 0, 0.9, 1.2, 'side');
+      if (d > 4) { unit(0, ly, 'right'); unit(0, ly, 'left'); }
     }
   }
-  if (frontDoor) { const p = L(0, d / 2 + 0.02); b.box(p[0], y, p[1], 1.0, 2.1, 0.06, dm, { rotY, collide: false, ao: false, stretch: true }); }
-  if (porch) { const p = L(0, d / 2 + 0.8); b.box(p[0], y - 0.4, p[1], 2.4, 0.55, 1.6, tm, { rotY, tint: 0xd9d2c4, surface: 'wood' }); }
-  if (garage) { const p = L(w / 2 + 2, 0.3); b.box(p[0], y - 0.5, p[1], 3.6, 3.3, d - 0.6, wm, { rotY, floorY: y }); const q = L(w / 2 + 2, d / 2 - 0.29); b.box(q[0], y, q[1], 2.8, 2.3, 0.06, tm, { rotY, collide: false, tint: 0xf2f2ee }); const r = L(w / 2 + 2, 0.3); b.add(gableRoofGeo(3.6, d - 0.6, 1.2, 0.2), rm, { x: r[0], y: y + 2.8, z: r[1], rotY }); }
+  // 4. front door with casing, canopy and steps
+  if (frontDoor) {
+    const p = L(0, d / 2 + 0.008);
+    b.box(p[0], y + PL, p[1], 1.0, 2.1, 0.03, dm, { rotY, collide: false, ao: false, stretch: true });
+    for (const sx of [-1, 1]) { const q = L(sx * 0.56, d / 2 + 0.03); b.box(q[0], y + PL, q[1], 0.12, 2.2, 0.06, tm, { rotY, collide: false, ao: false }); }
+    { const q = L(0, d / 2 + 0.03); b.box(q[0], y + PL + 2.2, q[1], 1.36, 0.12, 0.08, tm, { rotY, collide: false, ao: false }); }
+    { const q = L(0, d / 2 + 0.45); b.box(q[0], y + PL + 2.45, q[1], 1.7, 0.08, 0.9, rm, { rotY, collide: false, ao: false }); }
+    { const q = L(0, d / 2 + 0.38); b.box(q[0], y - 0.3, q[1], 1.6, PL + 0.3 - 0.17, 0.76, fm, { rotY, surface: 'concrete' }); }
+    { const q = L(0, d / 2 + 0.95); b.box(q[0], y - 0.3, q[1], 1.6, 0.3 + 0.01, 0.4, fm, { rotY, surface: 'concrete' }); }
+  }
+  if (porch) {
+    const q = L(0, d / 2 + 1.4);
+    b.box(q[0], y - 0.3, q[1], 3.2, 0.3 + 0.18, 1.2, b.mat('porch', { map: woodTex(0xc8b8a0, 6, 'porch'), texScale: [1.5, 1.5] }), { rotY, surface: 'wood', ao: false });
+    for (const sx of [-1, 1]) { const pp = L(sx * 1.45, d / 2 + 1.85); b.box(pp[0], y + 0.18, pp[1], 0.12, PL + 2.27, 0.12, tm, { rotY, collide: false }); }
+  }
+  // 6. roof
+  gableRoof(b, x, y + h, z, w, d, roofRise, { rotY, roofMat: rm, gableMat: wm, trimMat: tm, over: 0.45 });
+  if (chimney) { const p = L(w * 0.25, -d * 0.12); b.box(p[0], y + h - 0.6, p[1], 0.62, roofRise + 1.4, 0.62, b.mat('chim', { map: brickTex(0x9a5a48, 0xcfc6b8), texScale: [1, 1] }), { rotY, collide: false, cast: true }); }
+  if (garage) {
+    const g0 = L(w / 2 + 1.9, 0.3);
+    b.box(g0[0], y - 0.6, g0[1], 3.6, 3.2, d - 0.6, wm, { rotY, collide, floorY: y });
+    const gd = L(w / 2 + 1.9, (d - 0.6) / 2 + 0.3 + 0.015);
+    b.box(gd[0], y, gd[1], 2.8, 2.2, 0.03, b.mat('gdoor', { map: sidingTex(0xf4f2ee), texScale: [1, 0.6] }), { rotY, collide: false, ao: false });
+    gableRoof(b, g0[0], y + 2.6, g0[1], 3.6, d - 0.6, 1.0, { rotY, roofMat: rm, gableMat: wm, trimMat: tm, over: 0.25, thick: 0.1 });
+  }
   return { L };
 }
 

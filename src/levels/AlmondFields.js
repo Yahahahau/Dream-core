@@ -15,6 +15,7 @@ const fieldH = (x, z) => Math.sin(x * 0.012) * Math.cos(z * 0.01) * 3 + Math.sin
 
 export default class AlmondFields extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, H = fieldH;
     this.heightAt = H;
     this.terrainSurface = 'grass';

@@ -16,13 +16,14 @@ const DX = -78, DZ = -66; // the lone door
 
 export function hills(x, z) {
   let h = Math.sin(x * 0.017) * Math.cos(z * 0.014) * 7 + Math.sin(x * 0.031 + 1.2) * 3.5 + Math.cos(z * 0.026 + 0.5) * 3 + Math.sin((x + z) * 0.055) * 1.1;
-  h += 13 * Math.exp(-((x - HX) ** 2 + (z - HZ) ** 2) / (2 * 30 * 30));
+  h += 21 * Math.exp(-((x - HX) ** 2 + (z - HZ) ** 2) / (2 * 34 * 34));
   h += 7 * Math.exp(-((x - DX) ** 2 + (z - DZ) ** 2) / (2 * 20 * 20));
   return h;
 }
 
 export default class StartingZone extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game;
     this.heightAt = hills;
     this.terrainSurface = 'grass';
@@ -64,7 +65,7 @@ export default class StartingZone extends Level {
     const cm = new THREE.SpriteMaterial({ map: cloudSpriteTex(3), transparent: true, depthWrite: false, fog: false });
     const cloud = new THREE.Sprite(cm);
     cloud.position.set(HX, H(HX, HZ) + 20, HZ);
-    cloud.scale.set(26, 16, 1);
+    cloud.scale.set(34, 20, 1);
     this.group.add(cloud);
     this.disposables.push(cm);
     this.onUpdate((dt, t) => { cloud.position.y = H(HX, HZ) + 20 + Math.sin(t * 0.25) * 0.6; });
@@ -140,7 +141,7 @@ export default class StartingZone extends Level {
     particles(this, { kind: 'pollen', count: 220, size: 0.05, color: 0xfffbe0, box: 40, height: 10, fall: 0.05, drift: 0.8, opacity: 0.7 });
 
     // ---------- spawns ----------
-    const [sx, sz] = road[6];
+    const [sx, sz] = road[20];
     this.addSpawn('default', [sx, H(sx, sz), sz], yawTo(HX - sx, HZ - sz) - 0.12);
     this.spawns.menu = { pos: [-52, H(-52, -40) + 5.5, -40], yaw: yawTo(HX + 52, HZ + 40) + 0.1, pitch: -0.02 };
     this.addSpawn('house', [HX, H(HX, HZ) + 0.02, HZ - 1], 0);
@@ -156,8 +157,8 @@ export default class StartingZone extends Level {
     const fl = b.mat('wh-floor', { map: woodTex(0xa47c55, 5), roughness: 0.7, texScale: [2.5, 2.5] });
     const rm = b.mat('wh-roof', { color: 0xf3f2ee, roughness: 0.8 });
     // foundation + floor
-    b.box(HX, y - 1.5, HZ, w + 0.4, 1.5, d + 0.4, ext, { ao: false, tint: 0xd8d6d0, surface: 'wood' });
-    b.floor(x0, z0, x1, z1, y, fl, { surface: 'wood', collide: false });
+    b.box(HX, y - 1.5, HZ, w + 0.4, 1.28, d + 0.4, ext, { ao: false, tint: 0xd8d6d0, surface: 'wood' });
+    b.floor(x0 - 0.2, z0 - 0.2, x1 + 0.2, z1 + 0.2, y, fl, { surface: 'wood', thick: 0.22 });
     // shell walls: front has door, sides + back windows
     const op = { s: [], n: [{ at: w / 2, w: 1.0, h: 2.12 }], e: [{ at: d / 2, w: 1.1, h: 1.2, y0: 0.95 }], w: [{ at: d / 2, w: 1.1, h: 1.2, y0: 0.95 }] };
     b.room(x0, z0, x1, z1, y, h, { wall: ext, thick: t, openings: { ...op, s: [{ at: 2, w: 1.1, h: 1.2, y0: 0.95 }, { at: 5, w: 0.95, h: 2.12 }] } });
@@ -172,7 +173,7 @@ export default class StartingZone extends Level {
     b.box(x0 + 2, y + 0.95, z0 - t / 2, 1.1, 1.2, 0.05, winM, { collide: false, stretch: true, ao: false });
     // roof + chimney
     b.add(gableRoofGeo(w + t * 2, d + t * 2, 2.2, 0.4), rm, { x: HX, y: y + h, z: HZ, cast: true });
-    b.box(HX + 1.8, y + h, HZ - 1, 0.6, 2.6, 0.6, ext, { collide: false });
+    b.box(HX + 1.8, y + h + 0.16, HZ - 1, 0.6, 2.45, 0.6, ext, { collide: false });
     // step
     b.box(HX, y - 0.6, z1 + 0.65, 1.8, 0.45, 0.9, ext, { tint: 0xe2e0da, surface: 'concrete' });
 

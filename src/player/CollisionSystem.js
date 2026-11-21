@@ -110,10 +110,13 @@ export class CollisionSystem {
   }
 
   // Segment test used to keep interaction rays from passing through walls.
-  segmentBlocked(ax, ay, az, bx, by, bz) {
+  // ignore: colliders belonging to the target itself (never count as blockers)
+  segmentBlocked(ax, ay, az, bx, by, bz, ignore = null) {
     const minx = Math.min(ax, bx), maxx = Math.max(ax, bx), minz = Math.min(az, bz), maxz = Math.max(az, bz);
     for (const c of this.query((ax + bx) / 2, (az + bz) / 2, Math.max(maxx - minx, maxz - minz) / 2 + 0.5)) {
-      if (!c.enabled) continue;
+      if (!c.enabled || (ignore && ignore.has(c))) continue;
+      // a box that contains the end point is the object being looked at
+      if (bx >= c.min[0] - 0.05 && bx <= c.max[0] + 0.05 && by >= c.min[1] - 0.05 && by <= c.max[1] + 0.05 && bz >= c.min[2] - 0.05 && bz <= c.max[2] + 0.05) continue;
       let t0 = 0, t1 = 1;
       const o = [ax, ay, az], d = [bx - ax, by - ay, bz - az];
       let ok = true;

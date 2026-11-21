@@ -52,6 +52,7 @@ export function addSwitch(level, mesh, { prompt = 'Use switch', onToggle, sound 
 export function addPortal(level, mesh, { prompt = 'Look closer', target, spawn = 'default', style = 'static', color = 0xffffff, before = null }) {
   const def = makeInteractable(mesh, {
     prompt,
+    target: { level: target, spawn },
     use: (game) => {
       before?.(game);
       game.player.frozen = true;

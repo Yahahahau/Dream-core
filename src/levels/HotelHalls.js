@@ -114,7 +114,7 @@ export default class HotelHalls extends Level {
       texturedPlane(this, textTex(x === -6 ? '214' : String(n), { w: 128, h: 64, bg: '#c9a35a', fg: '#3a2014', font: 'bold 40px Georgia, serif' }), x - 0.75, y2 + 1.55, -1.5 + 0.01, 0.24, 0.12, 0);
     }
     // sconces
-    for (let x = -27; x <= 30; x += 6) for (const s of [-1, 1]) { b.prop([[0, 0, 0, 0.18, 0.28, 0.1, 0xf6e2b0]], x, y2 + 1.75, s * 1.55, 0, { blob: false }); halo(this, x, y2 + 1.95, s * 1.4, 0.9, '#ffd8a0', 0.7); }
+    for (let x = -27; x <= 30; x += 6) for (const s of [-1, 1]) { b.prop([[0, 0, 0, 0.18, 0.28, 0.1, 0xf6e2b0]], x, y2 + 1.75, s * 1.44, 0, { blob: false, name: 'sconce' }); halo(this, x, y2 + 1.95, s * 1.3, 0.9, '#ffd8a0', 0.7); }
     const hl = new THREE.PointLight(0xffd2a0, 6, 16, 1.5); hl.position.set(0, y2 + 2.4, 0); this.group.add(hl);
     this.loops = 0;
     // seamless loop: walking east far enough puts you back two rooms earlier
@@ -139,8 +139,9 @@ export default class HotelHalls extends Level {
     b.wall(bx0, bz1 + t / 2, bx1, bz1 + t / 2, by, 10, wallTall, { thick: t, openings: bw });
     bw.forEach((o) => b.box(bx0 + o.at, by + o.y0, bz1 + t / 2, o.w, o.h, 0.04, b.mat('nightwin', { map: windowTex(0xe8dcc0, 0x1c2a4a, 4), emissive: 0x18243e, roughness: 0.05 }), { collide: false, stretch: true, ao: false }));
     b.box(0, by + 2.8, 1.5 + t / 2, 40, 7.2, t, wallTall, { collide: false });
-    b.box(0, by, 31, 14, 0.8, 5, wood, { surface: 'wood' });
+    b.box(0, by, 31.5, 14, 0.8, 5, wood, { surface: 'wood' });
     b.stairs(0, 27.4, by, 4, 4, 0.2, 0.4, '+z', wood, { surface: 'wood' });
+    // (steps end at z 29.0, exactly where the stage front starts)
     b.prop(F.piano(), 3, by + 0.8, 32, Math.PI, { collide: true });
     for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) b.prop(F.roundTable(0xf6f2ea, 0.75), -12 + i * 8, by, 8 + k * 6, 0, { collide: true });
     chand(-8, by + 8, 12); chand(8, by + 8, 12); chand(0, by + 8, 22);
@@ -177,7 +178,7 @@ export default class HotelHalls extends Level {
     this.group.add(sea); this.disposables.push(sea.geometry, sea.material);
     addNote(this, hitbox(this, 26, y3 + 0.5, 0, 0.9, 0.1, 0.9), { title: 'Card on the table', text: 'Thank you for staying with us.\nCheckout is whenever you are ready.\nThere is no rush.\nThere was never any rush.' });
 
-    this.setLightZones([{ min: [-40, F3 - 2, -20], max: [40, F3 + 6, 20], hemi: 1.6, exposure: 1.05 }], { hemi: 1.15, exposure: 1.05 });
+    this.setLightZones([{ min: [-40, F3 - 2, -20], max: [40, F3 + 6, 20], hemi: 1.3, exposure: 1.05 }], { hemi: 0.95, exposure: 1.05 });
 
     this.addSpawn('default', [0, 0, -8], yawTo(0, 1));
     this.addSpawn('from-pool', [0, 0, -8], yawTo(0, 1));

@@ -19,7 +19,7 @@ export default class HallwaysOfTime extends Level {
     const t = 0.2;
     const M = {
       beige: b.mat('hbeige', { map: plasterTex(0xe8dcc8, 'hbeige'), texScale: [2, 2] }),
-      beigeF: b.mat('hbeigef', { map: carpetTex('home'), color: 0xc8b898, texScale: [2, 2] }),
+      beigeF: b.mat('hbeigef', { map: woodTex(0xb8977a, 6, 'hallwood'), roughness: 0.6, texScale: [2, 2] }),
       schoolW: b.mat('hschoolw', { map: wainscotTex(0x8fa79a, 0xece6d4, 0x5e7a6c, 0.36), texScale: [1.5, 3.2] }),
       schoolF: b.mat('hschoolf', { map: checkerTex(0xe9e3d0, 0x9fb0a2, 4), roughness: 0.55, texScale: [1.2, 1.2] }),
       hotelW: b.mat('hhotelw', { map: wainscotTex(0x6b3a2a, 0xd9c49a, 0xc9a35a, 0.33, 'wallpaper'), texScale: [1.6, 3] }),
@@ -47,11 +47,14 @@ export default class HallwaysOfTime extends Level {
     };
     // a thick frame where one memory turns into another
     const frame = (z, w, h, wNext, hNext) => {
-      const W = Math.max(w, wNext), H = Math.max(h, hNext), m = M.beige;
-      const inner = Math.min(w, wNext), innerH = Math.min(h, hNext);
-      b.box(-(W / 2 + inner / 2) / 2 - 0.0, 0, z, (W - inner) / 2 + 0.4, H, 0.4, m, {});
-      b.box((W / 2 + inner / 2) / 2, 0, z, (W - inner) / 2 + 0.4, H, 0.4, m, {});
-      b.box(0, innerH, z, W + 0.4, H - innerH + 0.01, 0.4, m, { collide: false });
+      // a portal frame: side pieces from the outer wall line in to the inner
+      // opening, a lintel above it; depth 0.46 so it stands clear of both walls
+      const W = Math.max(w, wNext) + 0.5, H = Math.max(h, hNext) + 0.02, m = M.beige;
+      const inner = Math.min(w, wNext) - 0.2, innerH = Math.min(h, hNext) - 0.15;
+      const sideW = (W - inner) / 2;
+      b.box(-(inner / 2 + sideW / 2), 0, z, sideW, H, 0.46, m, {});
+      b.box(inner / 2 + sideW / 2, 0, z, sideW, H, 0.46, m, {});
+      b.box(0, innerH, z, inner, H - innerH, 0.46, m, { collide: false });
     };
 
     // S0 — entry (plain, quiet)

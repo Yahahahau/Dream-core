@@ -48,6 +48,7 @@ function generate(seed) {
 
 export default class HedgeMaze extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game;
     this.neighbors = ['frozen', 'almond'];
     this.heightAt = () => 0;
@@ -63,32 +64,37 @@ export default class HedgeMaze extends Level {
     this.group.add(ground);
     this.disposables.push(lawn, ground.geometry);
     const gravel = b.mat('gravel', { map: dirtTex(0xc2b49a), roughness: 1, texScale: [3, 3] });
-    b.box(0, -0.18, Z0 - N * C / 2, N * C, 0.2, N * C, gravel, { collide: false, ao: false });
-    b.box(0, -0.18, 6, 3, 0.2, 28, gravel, { collide: false, ao: false });
+    b.box(0, -0.16, Z0 - N * C / 2, N * C, 0.2, N * C, gravel, { collide: false, ao: false });
+    b.box(0, -0.16, 6, 3, 0.2, 27.9, gravel, { collide: false, ao: false });
 
     // hedges
     const hm = b.mat('hedge', { map: hedgeTex(), roughness: 1, texScale: [2, 2] });
-    for (let rr = 0; rr <= N; rr++) for (let c = 0; c < N; c++) if (h[rr][c]) b.box(cx(c), 0, Z0 - rr * C, C + 1, HH, 1, hm, { cast: true, aoStrength: 0.5 });
-    for (let c = 0; c <= N; c++) for (let rr = 0; rr < N; rr++) if (v[c][rr]) b.box(X0 + c * C, 0, cz(rr), 1, HH, C + 1, hm, { cast: true, aoStrength: 0.5 });
+    // hedge modules: wall runs between corner posts, posts slightly wider and
+    // taller (clipped topiary), so no two hedge faces ever share a plane
+    const posts = new Set();
+    for (let rr = 0; rr <= N; rr++) for (let c = 0; c < N; c++) if (h[rr][c]) { b.box(cx(c), 0, Z0 - rr * C, C - 1.1, HH, 1, hm, { cast: true, aoStrength: 0.5 }); posts.add(c + ',' + rr); posts.add(c + 1 + ',' + rr); }
+    for (let c = 0; c <= N; c++) for (let rr = 0; rr < N; rr++) if (v[c][rr]) { b.box(X0 + c * C, 0, cz(rr), 1, HH, C - 1.1, hm, { cast: true, aoStrength: 0.5 }); posts.add(c + ',' + rr); posts.add(c + ',' + (rr + 1)); }
+    const hp = b.mat('hedgepost', { map: hedgeTex(), roughness: 1, texScale: [1.6, 1.6] });
+    for (const k of posts) { const [c, rr] = k.split(',').map(Number); b.box(X0 + c * C, 0, Z0 - rr * C, 1.1, HH + 0.22, 1.1, hp, { cast: true, aoStrength: 0.5, tint: 0xe8f0e0 }); }
 
     // ---------- the plaza ----------
     const PX = cx(6), PZ = cz(6);
     const stone = b.mat('mstone', { map: plasterTex(0xe6e0d2, 'mstone'), texScale: [1.5, 1.5] });
-    b.box(PX, -0.08, PZ, 11, 0.1, 11, stone, { collide: false, ao: false });
+    b.box(PX, -0.04, PZ, 11, 0.1, 11, stone, { collide: false, ao: false });
     b.prop([[0, 0, 0, 4.4, 0.6, 4.4, 0xe6e0d2, 'cyl'], [0, 0, 0, 0.5, 1.6, 0.5, 0xe6e0d2, 'cyl'], [0, 1.6, 0, 1.4, 0.2, 1.4, 0xe6e0d2, 'cyl'], [0, 1.8, 0, 0.3, 0.6, 0.3, 0xe6e0d2, 'cyl']], PX - 3, 0, PZ + 2.5, 0, { collide: true });
-    createWater(this, { x0: PX - 5, z0: PZ + 0.5, x1: PX - 1, z1: PZ + 4.5, y: 0.55, opacity: 0.6, shallow: 0x7fd0c8, sky: 0xdff0ff, scale: 2 });
+    createWater(this, { x0: PX - 5, z0: PZ + 0.5, x1: PX - 1, z1: PZ + 4.5, radius: 1.98, y: 0.55, opacity: 0.6, shallow: 0x7fd0c8, sky: 0xdff0ff, scale: 2 });
     const fw = new THREE.Object3D(); fw.position.set(PX - 3, 1, PZ + 2.5); this.group.add(fw);
     g.audio.positional(fw, { kind: 'water', volume: 0.45, ref: 3, filter: ['bandpass', 1500] });
     trees(this, [[PX + 3, 0, PZ - 2, 0, 3.2]], { kind: 'lollipop', leaf: 0xd88ab0 });
     for (const [dx, dz, r] of [[-4.6, -3, Math.PI / 2], [4.6, 3, -Math.PI / 2]]) b.prop(F.bench(0xf2eee6, 0x8a8a8a), PX + dx, 0, PZ + dz, r, { collide: true });
-    createDoor(this, { x: PX + 1, y: 0, z: PZ + 3.5, rotY: Math.PI, freeStanding: true, target: { level: 'frozen', spawn: 'default' }, glimpse: 0xeaf2ff, label: 'Open the white door', color: 0xf8f8f4, kind: 'flat' });
+    createDoor(this, { x: PX + 1, y: 0.06, z: PZ + 3.5, rotY: Math.PI, freeStanding: true, target: { level: 'frozen', spawn: 'default' }, glimpse: 0xeaf2ff, label: 'Open the white door', color: 0xf8f8f4, kind: 'flat' });
     addExamine(this, hitbox(this, PX + 3, 0, PZ - 2, 1, 4, 1), { name: 'The pink tree', text: 'You can see it from anywhere in the maze. Up close, the leaves are soft, like a sweater you lost.', notes: 'Hedge maze · center' });
 
     // colored lamp posts at chosen intersections (landmarks)
     const lamps = [[2, 2, 0xff8a8a], [10, 2, 0x8ab8ff], [2, 10, 0xffe08a], [10, 10, 0x9af0a8], [6, 3, 0xffffff]];
     for (const [c, rr, col] of lamps) {
-      b.prop([[0, 0, 0, 0.12, 3.6, 0.12, 0x2a2a2a, 'cyl'], [0, 3.6, 0, 0.45, 0.45, 0.45, col, 'sphere']], cx(c) + 1.4, 0, cz(rr) + 1.4, 0, { collide: true, blob: false });
-      halo(this, cx(c) + 1.4, 3.8, cz(rr) + 1.4, 1.6, '#' + new THREE.Color(col).getHexString(), 0.5);
+      b.prop([[0, 0, 0, 0.12, 3.6, 0.12, 0x2a2a2a, 'cyl'], [0, 3.6, 0, 0.45, 0.45, 0.45, col, 'sphere']], cx(c) + 1.05, 0, cz(rr) + 1.05, 0, { collide: true, blob: false });
+      halo(this, cx(c) + 1.05, 3.8, cz(rr) + 1.05, 1.6, '#' + new THREE.Color(col).getHexString(), 0.5);
     }
 
     // ---------- dead ends ----------
@@ -105,14 +111,14 @@ export default class HedgeMaze extends Level {
     const place = (d) => {
       const back = { s: 'n', n: 's', w: 'e', e: 'w' }[d.open];
       const off = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }[back];
-      const x = cx(d.c) + off[0] * 1.2, z = cz(d.rr) + off[1] * 1.2;
+      const x = cx(d.c) + off[0] * 0.75, z = cz(d.rr) + off[1] * 0.75;
       const look = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }[d.open];
       const rot = Math.atan2(look[0], look[1]);
       return { x, z, rot, wallX: cx(d.c) + off[0] * 1.45, wallZ: cz(d.rr) + off[1] * 1.45 };
     };
     const features = [
       (p) => { b.prop(F.bench(0xf2eee6, 0x6a6a6a), p.x, 0, p.z, p.rot, { collide: true }); addExamine(this, hitbox(this, p.x, 0, p.z, 1.8, 1, 0.6), { name: 'Bench in a dead end', text: 'A perfect place to be lost for a while.', notes: 'Hedge maze' }); },
-      (p) => { b.prop([[0, 0, 0, 0.4, 0.9, 0.4, 0xd8d2c4, 'cyl'], [0, 0.9, 0, 1.0, 0.15, 1.0, 0xd8d2c4, 'cyl']], p.x, 0, p.z, 0, { collide: true }); createWater(this, { x0: p.x - 0.4, z0: p.z - 0.4, x1: p.x + 0.4, z1: p.z + 0.4, y: 1.04, opacity: 0.7, scale: 3 }); addExamine(this, hitbox(this, p.x, 0, p.z, 1, 1.1, 1), { name: 'Birdbath', text: 'The water reflects a sky with two suns.', notes: 'Hedge maze' }); },
+      (p) => { b.prop([[0, 0, 0, 0.4, 0.9, 0.4, 0xd8d2c4, 'cyl'], [0, 0.9, 0, 1.0, 0.15, 1.0, 0xd8d2c4, 'cyl']], p.x, 0, p.z, 0, { collide: true }); createWater(this, { x0: p.x - 0.4, z0: p.z - 0.4, x1: p.x + 0.4, z1: p.z + 0.4, radius: 0.42, y: 1.04, opacity: 0.7, scale: 3 }); addExamine(this, hitbox(this, p.x, 0, p.z, 1, 1.1, 1), { name: 'Birdbath', text: 'The water reflects a sky with two suns.', notes: 'Hedge maze' }); },
       (p) => { trees(this, [[p.x, 0, p.z, 0, 0.9]], { kind: 'lollipop', leaf: 0x8ab8ff }); addExamine(this, hitbox(this, p.x, 0, p.z, 1, 3, 1), { name: 'Blue tree', text: 'It hums very quietly, the same note as a refrigerator at night.', notes: 'Hedge maze' }); },
       (p) => { b.prop([...F.roundTable(0xffffff, 0.45), [0, 0.76, 0, 0.18, 0.12, 0.18, 0xf2d0e0, 'cyl'], [0.2, 0.76, 0.1, 0.12, 0.08, 0.12, 0xffffff, 'cyl']], p.x, 0, p.z, 0, { collide: true }); b.prop(F.chair(0xffffff, 0xdddddd), p.x + Math.sin(p.rot) * 0.8, 0, p.z + Math.cos(p.rot) * 0.8, p.rot + Math.PI); addNote(this, hitbox(this, p.x, 0.7, p.z, 0.9, 0.2, 0.9), { title: 'Tea for one', text: 'The tea is still hot.\nThe cup has a lipstick mark\nin the shape of a tiny house.' }); },
       (p) => { b.prop(F.tvOld(), p.x, 0, p.z, p.rot, { collide: true }); const s = texturedPlane(this, colorBarsTex(), p.x + Math.sin(p.rot) * 0.29, 0.78, p.z + Math.cos(p.rot) * 0.29, 0.58, 0.44, p.rot, { unlit: true, emissive: true }); g.audio.positional(s, { kind: 'hum', base: 60, volume: 0.15, ref: 1.2 }); addExamine(this, s, { name: 'Television in the hedges', text: 'Color bars. If you stare long enough, the yellow one is a little brighter than it should be.', notes: 'Hedge maze' }); },
@@ -142,8 +148,8 @@ export default class HedgeMaze extends Level {
     for (let i = 0; i < 46; i++) { const a = i / 46 * Math.PI * 2; this.addCollider(Math.cos(a) * 60 - 4, 0, -34 + Math.sin(a) * 64 - 4, Math.cos(a) * 60 + 4, 4, -34 + Math.sin(a) * 64 + 4); }
     grassField(this, { x0: -40, z0: -8, x1: 40, z1: 28, heightAt: () => 0, density: 0.7, height: 0.32, color: 0x66a046, sway: 0.07, seed: 12, avoid: (x, z) => Math.abs(x) < 2 || (Math.abs(x) < 6 && z > 0 && z < 20) });
     createDoor(this, { x: 0, y: 0, z: 22, rotY: Math.PI, freeStanding: true, target: { level: 'almond', spawn: 'from-maze' }, glimpse: 0xffe8b0, label: 'Back to the fields', kind: 'flat', color: 0x2e3a2e });
-    texturedPlane(this, textTex(['THE GARDEN', 'please stay on the path'], { w: 512, h: 192, bg: '#f2eee2', fg: '#3a5a3a', font: '40px Georgia, serif', border: '#3a5a3a' }), -2.6, 1.2, -7.4, 1.6, 0.6, 0);
-    b.prop([[0, 0, 0, 0.1, 1.0, 0.1, 0x3a3a3a]], -2.6, 0, -7.6, 0, { blob: false });
+    texturedPlane(this, textTex(['THE GARDEN', 'please stay on the path'], { w: 512, h: 192, bg: '#f2eee2', fg: '#3a5a3a', font: '40px Georgia, serif', border: '#3a5a3a' }), -2.6, 1.2, -6.36, 1.6, 0.6, 0);
+    b.prop([[0, 0, 0, 0.1, 1.0, 0.1, 0x3a3a3a]], -2.6, 0, -6.45, 0, { blob: false });
 
     this.addSpawn('default', [0, 0, 16], yawTo(0, -1));
     this.addSpawn('from-almond', [0, 0, 16], yawTo(0, -1));

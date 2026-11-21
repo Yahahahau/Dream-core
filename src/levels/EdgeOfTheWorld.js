@@ -34,6 +34,7 @@ export function seaHeight(x, z) {
 
 export default class EdgeOfTheWorld extends Level {
   build() {
+    this.outdoor = true;
     const b = this.b, g = this.game, H = seaHeight;
     this.heightAt = H;
     this.terrainSurface = 'grass';
@@ -98,7 +99,7 @@ export default class EdgeOfTheWorld extends Level {
     // floating island at the top
     const PX = 66, PZ = topZ - 10;
     b.box(PX, topY - 3, PZ, 20, 3, 20, rm, { surface: 'grass', tint: 0xb0a898 });
-    b.box(PX, topY - 0.02, PZ, 20, 0.04, 20, b.mat('floatgrass', { map: grassTex(0x6aa04a, 'isle'), texScale: [4, 4] }), { collide: false, ao: false });
+    b.box(PX, topY - 0.02, PZ, 19.9, 0.05, 19.9, b.mat('floatgrass', { map: grassTex(0x6aa04a, 'isle'), texScale: [4, 4] }), { collide: false, ao: false });
     const under = new THREE.Mesh(new THREE.ConeGeometry(12, 18, 8), makeMaterial({ map: rockTex(), vertexColors: false }));
     under.rotation.x = Math.PI; under.position.set(PX, topY - 3 - 9, PZ); this.group.add(under);
     this.disposables.push(under.geometry, under.material);
