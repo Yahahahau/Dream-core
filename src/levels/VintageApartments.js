@@ -186,12 +186,14 @@ export default class VintageApartments extends Level {
     const pl = new THREE.PointLight(0xffd8a8, 3, 8, 1.6); pl.position.set(mx(5.5), y + 2.2, 6); this.group.add(pl);
     // furniture (common)
     const r = u.mirror ? Math.PI : 0;
-    b.prop(F.counter(2.6, 0xe8dcc0, 0x8a7a60), mx(6.6), y, z0 + 0.35, 0, { collide: true });
-    b.prop(F.fridge(), mx(7.5), y, z0 + 0.4, 0, { collide: true });
-    b.prop(F.stove(), mx(5.0), y, z0 + 0.35, 0, { collide: true });
-    b.prop(F.table(0xb08a60, 1.2, 0.8), mx(5.8), y, 4.0, 0, { collide: true });
-    b.prop(F.chair(0x8a5a3a, 0x6a4a2a), mx(5.3), y, 3.4, 0);
-    b.prop(F.chair(0x8a5a3a, 0x6a4a2a), mx(6.3), y, 4.6, Math.PI);
+    // floor plan: entry zone kept clear in front of the door (lx 5–7, z 2–3.4),
+    // kitchen in the corner by the bedroom, dining between kitchen and entry
+    b.prop(F.fridge(), mx(0.45), y, z0 + 0.4, 0, { collide: true, name: 'fridge' });
+    b.prop(F.counter(2.5, 0xe8dcc0, 0x8a7a60), mx(2.1), y, z0 + 0.35, 0, { collide: true, name: 'counter' });
+    b.prop(F.stove(), mx(3.75), y, z0 + 0.35, 0, { collide: true, name: 'stove' });
+    b.prop(F.table(0xb08a60, 1.2, 0.8), mx(2.2), y, 3.85, 0, { collide: true, name: 'table' });
+    b.prop(F.chair(0x8a5a3a, 0x6a4a2a), mx(1.7), y, 3.25, 0, { name: 'chair' });
+    b.prop(F.chair(0x8a5a3a, 0x6a4a2a), mx(2.7), y, 4.45, Math.PI, { name: 'chair' });
     b.prop(F.bed(u.f === 2 && u.mirror ? 0xf2c4d8 : 0xe8e2f0), mx(1.6), y, 7.6, Math.PI, { collide: true });
     b.prop(F.wardrobe(), mx(0.4), y, 5.8, Math.PI / 2 * m, { collide: true });
     texturedPlane(this, paintingTex(u.f * 2 + (u.mirror ? 1 : 0)), mx(7.95), y + 1.6, 6.5, 0.8, 0.6, -Math.PI / 2 * m);
@@ -203,8 +205,8 @@ export default class VintageApartments extends Level {
       addPortal(this, scr, { prompt: 'Use the computer', target: 'broken', spawn: 'default', style: 'static' });
       b.prop(F.sofa(0x8a6a5a), mx(5.5), y, 7.8, Math.PI, { collide: true });
     } else if (u.kind === 'kettle') {
-      b.prop([[0, 0, 0, 0.2, 0.2, 0.2, 0xd8d8d0, 'sphere']], mx(5.0), y + 0.92, z0 + 0.3, 0, { blob: false });
-      addNote(this, hitbox(this, mx(5.8), y + 0.75, 4.0, 1.2, 0.1, 0.8), { title: 'Note by the kettle', text: 'Put the kettle on.\nI will be home in a minute.\n\n(The kettle is still warm. The note is very old.)' });
+      b.prop([[0, 0, 0, 0.2, 0.2, 0.2, 0xd8d8d0, 'sphere']], mx(3.75), y + 0.92, z0 + 0.3, 0, { blob: false });
+      addNote(this, hitbox(this, mx(2.2), y + 0.75, 3.85, 1.2, 0.1, 0.8), { title: 'Note by the kettle', text: 'Put the kettle on.\nI will be home in a minute.\n\n(The kettle is still warm. The note is very old.)' });
       b.prop(F.tvOld(), mx(7.2), y, 7.6, -Math.PI / 2 * m, { collide: true });
       const tv = texturedPlane(this, staticTex(), mx(6.9), y + 0.78, 7.6, 0.58, 0.44, -Math.PI / 2 * m, { unlit: true });
       tv.material.map = tv.material.map.clone(); tv.material.map.needsUpdate = true; this.disposables.push(tv.material.map);

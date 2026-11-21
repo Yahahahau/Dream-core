@@ -34,6 +34,7 @@ export default class AlmondFields extends Level {
     const toChair = curvePoints([[0, -120], [-30, -130], [-62, -150]], 2);
     const toStairs = curvePoints([[3, -30], [30, -20], [56, -16]], 2);
     const paths = [main, toShed, toBus, toChair, toStairs];
+    this.surfaceAt = (x, z) => (paths.some((p) => distToPath(x, z, p) < 1.2) ? 'dirt' : null);
     paths.forEach((p) => ribbon(this, p, 2.2, H, dm, { lift: 0.06, uvScale: 3 }));
 
     // tall golden grass everywhere except the paths
@@ -94,7 +95,7 @@ export default class AlmondFields extends Level {
     const stop = hitbox(this, bx, by, bz - 0.7, 2, 1.2, 1);
     let waiting = false;
     this.addInteractable({
-      mesh: stop, prompt: 'Wait for the bus',
+      mesh: stop, prompt: 'Wait for the bus', target: { level: 'apartments', spawn: 'from-bus' },
       use: async (game) => {
         if (waiting) return;
         waiting = true;

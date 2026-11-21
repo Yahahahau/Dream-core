@@ -171,8 +171,13 @@ export function fluorescent(level, x, y, z, { w = 0.6, d = 1.2, flicker = false,
   level.group.add(m);
   level.disposables.push(mat, m.geometry);
   let pl = null;
+  if (level.bake && !flicker) {
+    const c = new THREE.Color(color);
+    level.bakeLights.push({ pos: [x, y - 0.12, z], color: [c.r, c.g, c.b], intensity: 1.5 + w * d * 0.7, r0: 2.1, range: 11, down: true });
+  }
   if (light) {
     pl = new THREE.PointLight(0xeef8ff, 4, 9, 1.6);
+    pl.userData.dynamic = !!flicker;
     pl.position.set(x, y - 0.4, z);
     level.group.add(pl);
   }
@@ -206,6 +211,10 @@ export function halo(level, x, y, z, size = 1.2, color = '#fff2d0', opacity = 0.
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(color), transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending }));
   s.position.set(x, y, z); s.scale.setScalar(size);
   level.group.add(s);
+  if (level.bake && opacity > 0.15) {
+    const c = new THREE.Color(color);
+    level.bakeLights.push({ pos: [x, y, z], color: [c.r, c.g, c.b], intensity: opacity * size * 0.55, r0: Math.max(0.6, size * 0.7), range: Math.max(4, size * 5) });
+  }
   level.disposables.push(s.material);
   return s;
 }

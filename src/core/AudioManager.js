@@ -34,6 +34,7 @@ export class AudioManager {
     this.ambName = null;
     this.unlocked = false;
     this.steps = new Footsteps(this);
+    this.sample('door-open'); this.sample('door-close');
     this.applyVolumes();
     // music
     this.musicEl = new Audio();
@@ -51,6 +52,28 @@ export class AudioManager {
       if (document.hidden) { this.ctx.suspend?.(); this.musicEl.pause(); }
       else if (this.unlocked) { this.ctx.resume?.(); if (this.musicStarted && this.musicEl.src && !this.musicEl.ended) this.musicEl.play().catch(() => {}); }
     });
+  }
+
+  // Decoded sample cache (sfx files in public/assets/audio/sfx)
+  loadBuffer(url) {
+    this.bufCache ||= new Map();
+    if (!this.bufCache.has(url)) {
+      this.bufCache.set(url, fetch(url).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        .then((a) => new Promise((res, rej) => this.ctx.decodeAudioData(a, res, rej)))
+        .catch((e) => { console.warn('sound failed', url, e); return null; }));
+    }
+    return this.bufCache.get(url);
+  }
+
+  sample(name) { return this.loadBuffer(`${import.meta.env.BASE_URL}assets/audio/sfx/${name}.mp3`); }
+
+  async playSample(name, pos = null, gain = 0.8, rate = 1) {
+    if (!this.unlocked) return;
+    const buf = await this.sample(name);
+    if (!buf) return false;
+    const s = this.ctx.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate;
+    s.connect(this._out(pos, gain)); s.start();
+    return true;
   }
 
   hum(base) {
@@ -186,7 +209,7 @@ export class AudioManager {
     this.pending = [];
   }
 
-  footstep(surface, intensity) { if (this.unlocked) this.steps.play(surface, intensity); }
+  footstep(surface, intensity, running) { if (this.unlocked) this.steps.play(surface, intensity, running); }
 
   // ---------- one-shots ----------
   _out(pos, gain) {
@@ -222,8 +245,8 @@ export class AudioManager {
 
   sfx(name, pos = null) {
     switch (name) {
-      case 'creak': this.noiseShot(0.7, 0.12, 300, { q: 6, sweep: 500, pos, attack: 0.1 }); this.tone(140, 0.6, 0.05, { type: 'triangle', glide: 60, pos }); break;
-      case 'close': this.noiseShot(0.12, 0.3, 200, { type: 'lowpass', pos }); this.tone(80, 0.2, 0.2, { pos }); break;
+      case 'creak': this.playSample('door-open', pos, 0.85, 0.96 + Math.random() * 0.08); break;
+      case 'close': this.playSample('door-close', pos, 0.9, 0.96 + Math.random() * 0.08); break;
       case 'locked': this.noiseShot(0.06, 0.25, 1800, { q: 3, pos }); this.noiseShot(0.06, 0.25, 1600, { q: 3, pos, when: 0.12 }); break;
       case 'click': this.noiseShot(0.03, 0.25, 3000, { q: 2, pos }); break;
       case 'ding': this.tone(1318.5, 1.6, 0.12, { pos }); this.tone(1046.5, 1.8, 0.1, { pos, when: 0.35 }); break;

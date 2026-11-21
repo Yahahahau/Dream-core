@@ -16,6 +16,7 @@ const UP = 6;
 
 export default class ShoppingMall extends Level {
   build() {
+    this.bakeSkyScale = 0.7; // skylights: keep the white floor from blowing out
     const b = this.b, g = this.game;
     this.neighbors = ['hallways', 'broken', 'apartments'];
     this.surface = 'tile';

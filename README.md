@@ -39,11 +39,24 @@ Built with three.js + Vite. Works on desktop, Android, iPad and portrait/landsca
 Every tier keeps real-time shadows, baked contact shading and colour grading.
 The first launch always uses LOW; the chosen tier is saved.
 
+## Architecture & lighting (v1.2)
+
+- `src/core/Blueprint.js` — a building is written once as floors, rooms, doors, windows,
+  stairs and elevators; the facade, interior walls, slabs, ceilings, window glass and stair
+  flights are generated from that plan and validated semantically. Level 04 (Hotel Halls)
+  is built this way: a four-storey hotel on a rainy street with lobby, dining room, kitchen,
+  lift lobby, two elevators, stairwell, service corridor, 24 guest rooms and a closed 4th floor.
+- `src/core/Baker.js` — static architecture in interior levels is lit by baking: every vertex
+  gathers light from the level's fixtures, sky through real openings, and ambient occlusion,
+  by ray casting at load time. Baked surfaces render unlit; real-time lights and shadows are
+  kept for moving objects and outdoor levels. Bake detail follows the graphics preset.
+- Footsteps use recorded samples chosen by the surface under the player.
+
 ## QA
 
 `?validate=1` runs the geometry audit (`src/utils/GeometryValidator.js`) on each level.
 `node tools/qa-validate.mjs` and `node tools/qa-portals.mjs` (needs `npm i -D playwright`)
-check every level and every portal door. Results: `docs/QA_CHECKLIST.md`.
+check every level and every portal door; `node tools/qa-nav.mjs` checks that every exit can be walked to. Results: `docs/QA_CHECKLIST.md`.
 
 ## Development
 

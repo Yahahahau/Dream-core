@@ -106,7 +106,7 @@ export function createDoor(level, o) {
       }
       if (target && (door.busy || game.world.busy)) return;
       door.open = !door.open;
-      game.audio.sfx(door.open ? sound : 'close', root.position);
+      if (door.open) { game.audio.sfx(sound, root.position); door.closing = false; } else door.closing = true;
       if (door.open && onOpen) onOpen(door);
       if (door.open && target) {
         door.busy = true;
@@ -129,6 +129,9 @@ export function createDoor(level, o) {
     colliders: [...doorCols, ...frameCols],
   });
   def.target = target; def.door = door; def.doorPose = { x, y, z, rotY, freeStanding };
+  door.cols = doorCols;
+  door.isLocked = () => !!(typeof locked === 'function' ? locked() : locked);
+  def.approach = () => new THREE.Vector3(x + Math.sin(rotY) * 0.9, y + 1.2, z + Math.cos(rotY) * 0.9);
   def.enabled = true;
   level.addInteractable(def);
 
@@ -136,6 +139,7 @@ export function createDoor(level, o) {
     const goal = door.open ? openAngle * swing : 0;
     door.angle += (goal - door.angle) * (1 - Math.exp(-5 * dt));
     pivot.rotation.y = door.angle;
+    if (door.closing && Math.abs(door.angle) < 0.06) { door.closing = false; game.audio.sfx('close', root.position); }
     const closed = Math.abs(door.angle) < 0.35;
     for (const col of doorCols) col.enabled = closed;
     def.enabled = !door.busy;

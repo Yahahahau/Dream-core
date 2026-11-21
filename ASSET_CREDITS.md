@@ -30,6 +30,10 @@ gable roofs, stair flights, contact shading) and bevelled furniture using three.
 `RoundedBoxGeometry` (MIT). External GLB libraries were again unreachable from the build
 environment, so all models remain procedural and share one consistent style.
 
+v1.2 adds `src/core/Blueprint.js` (one building plan generates facade, interior walls,
+slabs, windows, stairs and elevators) and `src/core/Baker.js` (in-engine light baking into
+vertex colours). Both are original code; no external models or lightmaps are used.
+
 External sources recommended in the design brief (Poly Haven, ambientCG — both CC0;
 Quaternius, Kenney — check each pack) could not be reached from the build environment, so
 procedural replacements were made as the brief allows. Any downloaded asset added later must
@@ -37,9 +41,22 @@ be listed in this file with source URL, creator, licence and file name.
 
 ## Sound effects and ambience
 
-All ambience (wind, birds, chimes, fluorescent hum, pool water, drips, ocean, crickets,
-CRT static, drones), footsteps and interface sounds are **synthesized live with the Web
-Audio API** (`src/audio/*`, `src/core/AudioManager.js`). No recorded audio besides the music.
+Recorded sound effects (v1.2) were **supplied by the project owner** and live in
+`public/assets/audio/sfx/`. They were converted to mono MP3, trimmed of leading silence and
+peak-normalised; nothing else was changed.
+
+| Game file | Supplied file / use |
+|---|---|
+| `concrete1-4.mp3` | concrete footsteps — also tile, marble, asphalt, metal, ice |
+| `dirt1-3.mp3` | dirt footsteps — also sand, snow, gravel |
+| `wood1-4.mp3` | `run_wooden` footsteps — wood; carpet and rugs use them low-pass filtered |
+| `grass1-4.mp3` | grass footsteps — also leaves |
+| `door-open.mp3` | door opening |
+| `door-close.mp3` | `Spyderst-door-shut` — door closing (plays when the door meets its frame) |
+
+Rights belong to their original creators / the supplier. All other ambience (wind, birds,
+chimes, hum, water, rain, drips, ocean, crickets, static, drones) and interface sounds are
+still **synthesized live with the Web Audio API** (`src/audio/*`, `src/core/AudioManager.js`).
 
 ## Reference images
 

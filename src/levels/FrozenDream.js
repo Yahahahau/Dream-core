@@ -34,6 +34,7 @@ export default class FrozenDream extends Level {
     const b = this.b, g = this.game, H = snowH;
     this.heightAt = H;
     this.terrainSurface = 'snow';
+    this.surfaceAt = (x, z) => (Math.hypot(x - LX, z - LZ) < LR ? 'ice' : null);
     this.neighbors = ['anemoia'];
 
     const sm = makeMaterial({ map: snowTex(), vertexColors: true, roughness: 0.9 });

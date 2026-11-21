@@ -69,10 +69,13 @@ export function windowUnit(b, x, y, z, w, h, rotY, o = {}) {
   const fw = KIT.frameW, P = KIT.proud;
   const fm = frameMat || b.mat('__winframe', { color: 0xf6f4ee, roughness: 0.55 });
   // glass sits slightly *into* the wall face
-  { const [px, pz] = L(0, recess); b.box(px, y, pz, w, h, 0.012, glassMat, { rotY, collide: false, ao: false, stretch: true }); }
+  const g = 0.003; // casings stand just clear of the opening's reveals (no coplanar faces)
+  if (glassMat !== null) { const [px, pz] = L(0, recess); b.box(px, y + g, pz, w - 2 * g, h - 2 * g, 0.012, glassMat, { rotY, collide: false, ao: false, stretch: true }); }
   // casing: sides run full height, head and bottom rail sit between them
-  for (const sx of [-1, 1]) { const [px, pz] = L(sx * (w / 2 + fw / 2), P / 2); b.box(px, y - fw, pz, fw, h + fw * 2, depth + P, fm, { rotY, collide: false, ao: false }); }
-  { const [px, pz] = L(0, P / 2); b.box(px, y + h, pz, w, fw, depth + P, fm, { rotY, collide: false, ao: false }); b.box(px, y - fw, pz, w, fw, depth + P, fm, { rotY, collide: false, ao: false }); }
+  // the casing sits on the wall face (2 mm clear), never inside the opening's reveal
+  const cz = 0.002 + (depth + P) / 2;
+  for (const sx of [-1, 1]) { const [px, pz] = L(sx * (w / 2 + fw / 2), cz); b.box(px, y - fw, pz, fw, h + fw * 2, depth + P, fm, { rotY, collide: false, ao: false }); }
+  { const [px, pz] = L(0, cz); b.box(px, y + h, pz, w, fw, depth + P, fm, { rotY, collide: false, ao: false }); b.box(px, y - fw, pz, w, fw, depth + P, fm, { rotY, collide: false, ao: false }); }
   if (cross) {
     { const [px, pz] = L(0, 0); b.box(px, y, pz, 0.035, h, 0.04, fm, { rotY, collide: false, ao: false }); }
     { const [px, pz] = L(0, 0); b.box(px, y + h / 2 - 0.0175, pz, w, 0.035, 0.03, fm, { rotY, collide: false, ao: false }); }

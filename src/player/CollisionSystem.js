@@ -17,6 +17,7 @@ export class CollisionSystem {
   load(level) {
     this.clear();
     this.heightAt = level.heightAt;
+    this.surfaceAt = level.surfaceAt ? level.surfaceAt.bind(level) : null;
     this.terrainSurface = level.terrainSurface;
     this.defaultSurface = level.surface;
     for (const c of level.colliders) this.addBox(c);
@@ -52,7 +53,7 @@ export class CollisionSystem {
     let best = -Infinity, surface = this.defaultSurface;
     if (this.heightAt) {
       const h = this.heightAt(x, z);
-      if (h <= maxY) { best = h; surface = this.terrainSurface; }
+      if (h <= maxY) { best = h; surface = (this.surfaceAt && this.surfaceAt(x, z)) || this.terrainSurface; }
     }
     for (const c of this.query(x, z, r)) {
       if (!c.enabled) continue;

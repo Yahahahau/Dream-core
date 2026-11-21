@@ -53,6 +53,7 @@ export default class HedgeMaze extends Level {
     this.neighbors = ['frozen', 'almond'];
     this.heightAt = () => 0;
     this.terrainSurface = 'grass';
+    this.surfaceAt = (x, z) => ((x > -26 && x < 26 && z < -8 && z > -60) || (Math.abs(x) < 1.5 && z > -8 && z < 20) ? 'gravel' : null);
     const { h, v } = generate(1337);
     this.maze = { h, v };
 

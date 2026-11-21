@@ -9,6 +9,9 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { makeMaterial, quality } from './Materials.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { contactStrip } from './Architecture.js';
+import { OccluderGrid, bakeGeometries } from './Baker.js';
+import { tier } from './QualityPresets.js';
+import { PRESETS } from '../environment/LightingPresets.js';
 import { blobShadowTex } from '../utils/Textures.js';
 import { validateLevel } from '../utils/GeometryValidator.js';
 
@@ -25,6 +28,7 @@ export class LevelBuilder {
     this.level = level;
     this.buckets = new Map();
     this.mats = new Map();
+    this.bakeCell = level.bake ? tier(quality.level).bakeCell : 0;
     this.plain = this.mat('__plain', { color: 0xffffff, roughness: 0.8 });
     this.placed = new Set();   // duplicate-placement guard
     this.audit = [];           // axis-aligned boxes for validation
@@ -45,7 +49,10 @@ export class LevelBuilder {
   // ---- materials ----
   mat(name, opts) {
     if (this.mats.has(name)) return this.mats.get(name);
+    // baked levels: static surfaces carry their lighting in vertex colours
+    if (this.level.bake && !opts.transparent && !opts.keepLit) opts = { ...opts, unlit: true, vertexColors: opts.vertexColors ?? true };
     const m = makeMaterial(opts);
+    m.userData.bake = this.level.bake && !opts.transparent && !opts.keepLit && !name.startsWith('__blob');
     m.name = name;
     this.mats.set(name, m);
     this.level.disposables.push(m);
@@ -100,12 +107,16 @@ export class LevelBuilder {
       if (!this._guard('box', x - ax / 2, y, z - az / 2, x + ax / 2, y + h, z + az / 2, mat)) return null;
       this.audit.push({ min: [x - ax / 2, y, z - az / 2], max: [x + ax / 2, y + h, z + az / 2], mat, visible: !(mat.visible === false), transparent: mat.transparent, ceiling: !!o.isCeiling });
     }
-    const ao = o.ao ?? !flat;
-    const hs = ao ? Math.min(10, Math.max(1, Math.ceil(h / 0.35))) : 1;
-    let g = new THREE.BoxGeometry(w, h, d, 1, hs, 1);
+    // o.cell coarsens the bake grid for large, simple surfaces (streets, distant facades)
+    const bc = this.bakeCell ? Math.max(this.bakeCell, o.cell || 0) : 0;
+    const ao = bc ? false : (o.ao ?? !flat);
+    const seg = (v) => (bc ? Math.min(48, Math.max(1, Math.ceil(v / bc))) : 1);
+    const hs = bc ? seg(h) : ao ? Math.min(10, Math.max(1, Math.ceil(h / 0.35))) : 1;
+    const ws = seg(w), ds = seg(d);
+    let g = new THREE.BoxGeometry(w, h, d, ws, hs, ds);
     const [sx, sy] = o.texScale || mat.userData.texScale || [2, 2];
     const uv = g.attributes.uv;
-    const counts = [2 * (hs + 1), 2 * (hs + 1), 4, 4, 2 * (hs + 1), 2 * (hs + 1)];
+    const counts = [(ds + 1) * (hs + 1), (ds + 1) * (hs + 1), (ws + 1) * (ds + 1), (ws + 1) * (ds + 1), (ws + 1) * (hs + 1), (ws + 1) * (hs + 1)];
     let vi = 0;
     if (!o.stretch) {
       counts.forEach((cnt, face) => {
@@ -181,7 +192,7 @@ export class LevelBuilder {
       const cx = x0 + ux * mid, cz = z0 + uz * mid;
       this.box(cx, y + yb, cz, b - a, yt - yb, t, mat, { ...o, rotY: ang, floorY: y, ceilY: y + h });
       // baked contact shading where the wall meets the floor (both faces)
-      if (yb === 0 && h >= 1.5 && o.contact !== false && o.collide !== false && !mat.transparent) {
+      if (!this.level.bake && yb === 0 && h >= 1.5 && o.contact !== false && o.collide !== false && !mat.transparent) {
         const ax = x0 + ux * a, az = z0 + uz * a, bx = x0 + ux * b, bz = z0 + uz * b, ht = t / 2;
         contactStrip(this, ax + nx * ht, az + nz * ht, bx + nx * ht, bz + nz * ht, y);
         contactStrip(this, bx - nx * ht, bz - nz * ht, ax - nx * ht, az - nz * ht, y);
@@ -240,7 +251,7 @@ export class LevelBuilder {
       g.rotateY(rotY);
       g.translate(x, y, z);
       g = this._ensureAttrs(g);
-      this._shade(g, { tint: color ?? 0xcccccc, ao: true, floorY: y, aoStrength: 0.3 });
+      this._shade(g, { tint: color ?? 0xcccccc, ao: !this.bakeCell, floorY: y, aoStrength: 0.3 });
       g.computeBoundingBox();
       box.union(g.boundingBox);
       geos.push(g);
@@ -310,7 +321,43 @@ export class LevelBuilder {
     return mesh;
   }
 
+  bake() {
+    const lv = this.level, game = lv.game;
+    // lights: registered fixtures + every static PointLight placed by the level
+    const lights = [...lv.bakeLights];
+    const remove = [];
+    lv.group.traverse((o) => {
+      if (o.isPointLight && !o.userData.dynamic) {
+        o.updateWorldMatrix(true, false);
+        const p = new THREE.Vector3().setFromMatrixPosition(o.matrixWorld);
+        lights.push({ pos: p.toArray(), color: o.color.toArray(), intensity: o.intensity * 0.09, r0: 1.6, range: o.distance || 14 });
+        remove.push(o);
+      }
+    });
+    remove.forEach((o) => o.removeFromParent());
+    const occ = new OccluderGrid([
+      ...this.audit.filter((b) => b.visible && !b.transparent),
+      ...this.propAudit.map((p) => ({ min: p.min, max: p.max })),
+    ]);
+    const T = tier(quality.level);
+    const P = PRESETS[lv.def.preset] || {};
+    const base = {
+      ambient: { color: P.hemi?.[0] ?? 0xffffff, intensity: 0.1 },
+      bounce: { color: P.hemi?.[1] ?? 0xffffff, intensity: 0.28 },
+      sky: { color: P.sky?.horizon ?? 0xcfe4ff, intensity: 2.4 * (lv.bakeSkyScale ?? 1) },
+      sun: P.sun ? { dir: P.sun.dir, color: P.sun.color, intensity: P.sun.intensity * 0.55 } : null,
+    };
+    const cfg = { ...base, ...(lv.bakeConfig || {}), lights, skyRays: T.skyRays };
+    const geos = [];
+    for (const b of this.buckets.values()) if (b.mat.userData.bake) geos.push(...b.geos);
+    const stats = bakeGeometries(geos, occ, cfg);
+    lv.bakeStats = { ...stats, lights: lights.length, occluders: occ.boxes.length };
+    console.info(`[bake] ${lv.id}: ${stats.verts} vertices (${stats.unique} unique), ${lights.length} lights, ${stats.rays} rays, ${stats.ms} ms`);
+    void game;
+  }
+
   finalize() {
+    if (this.level.bake) this.bake();
     if (VALIDATE) {
       const issues = validateLevel(this.audit, this.propAudit);
       this.level.report = { warnings: this.warnings, issues };

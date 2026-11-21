@@ -6,17 +6,17 @@ export const QUALITY = {
   low: {
     label: 'Low', maxRatio: 1, msaa: 0, bloom: false, env: false,
     shadowMap: 1024, shadowExt: 16, shadowSoft: false, normalBias: 0.05, bias: -0.0006,
-    far: 480, interiorCasters: true,
+    far: 480, interiorCasters: true, bakeCell: 0.9, skyRays: 6,
   },
   medium: {
     label: 'Medium', maxRatio: 1.5, msaa: 2, bloom: false, env: true,
     shadowMap: 2048, shadowExt: 26, shadowSoft: true, normalBias: 0.035, bias: -0.0004,
-    far: 900, interiorCasters: true,
+    far: 900, interiorCasters: true, bakeCell: 0.6, skyRays: 10,
   },
   high: {
     label: 'High', maxRatio: 2, msaa: 4, bloom: true, env: true,
     shadowMap: desktop ? 4096 : 2048, shadowExt: 38, shadowSoft: true, normalBias: 0.025, bias: -0.0003,
-    far: 1500, interiorCasters: true,
+    far: 1500, interiorCasters: true, bakeCell: 0.45, skyRays: 14,
   },
 };
 

@@ -14,7 +14,7 @@ export function createElevator(level, o) {
   const floorM = b.mat('__elev_floor', { map: concreteTex(0x6d6a66), roughness: 0.6, texScale: [1, 1] });
   // shell
   let p;
-  p = L(0, 0); b.box(p[0], y - 0.2, p[1], W + 0.4, 0.2, D + 0.36, floorM, { rotY, surface: 'metal', ao: false });
+  p = L(0, 0); b.box(p[0], y - 0.215, p[1], W + 0.4, 0.2, D + 0.36, floorM, { rotY, surface: 'metal', ao: false });
   p = L(0, -D / 2 - 0.1); b.box(p[0], y, p[1], W + 0.4, H, 0.2, wallM, { rotY, floorY: y, ceilY: y + H });
   p = L(-W / 2 - 0.1, 0); b.box(p[0], y, p[1], 0.2, H, D, wallM, { rotY, floorY: y, ceilY: y + H });
   p = L(W / 2 + 0.1, 0); b.box(p[0], y, p[1], 0.2, H, D, wallM, { rotY, floorY: y, ceilY: y + H });
@@ -79,7 +79,8 @@ export function createElevator(level, o) {
     },
   };
   makeInteractable(callBtn, { prompt: 'Call elevator', use: () => { game.audio.sfx('ding', root.position); el.setOpen(true); }, range: 2.4 });
-  makeInteractable(panel, { prompt: 'Choose floor', use: () => el.choose(), range: 2.6 });
+  el.cols = [col];
+  makeInteractable(panel, { prompt: 'Choose floor', use: () => el.choose(), range: 2.6, links: destinations, elevator: el });
   level.addInteractable(callBtn.userData.interactable);
   level.addInteractable(panel.userData.interactable);
 

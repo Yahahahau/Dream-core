@@ -1,3 +1,26 @@
+# DREAMSCAPE v1.2 — QA checklist (architecture, lighting, SFX)
+
+Automated: `node tools/qa-nav.mjs` (collision-aware reachability), `node tools/qa-portals.mjs`,
+`node tools/qa-validate.mjs` (geometry audit). The hotel's own plan check
+(`Blueprint.validate()`) runs on every load and is stored in `level.blueprintReport`.
+
+| Check | Method | Result |
+|---|---|---|
+| Hotel interior = exterior | One `Blueprint` generates both wall faces from the same rooms, doors and windows | Every window is a single opening with glass on the wall centre: the street is visible from the rooms and the lit rooms from the street. |
+| Plan consistency | `Blueprint.validate()`: doors on real walls, windows only on exterior walls, no door into a corner, head-room, stairs meet floor levels, riser 14–20 cm, every room reachable | 0 issues (4 floors, 106 spaces, 24 guest rooms). |
+| Stairs | Switchback flights generated from floor heights | G→2→3→4 connected; risers 17.1 / 17.5 cm; landings are part of each floor; stairwell walls continuous through slabs. |
+| Navigation | Flood fill from spawn with player radius / step / height; doors opened, elevators and portals followed | All exits reachable on all 13 levels. Hotel floors 2–4 are reachable by stairs alone (elevators disabled in the test). |
+| Doors kept clear | NavValidator door-clearance (0.65 m / 1.0 m) | 0 blocked doors. Fixed: classroom desks, apartment kitchen counters, Anemoia TV, Starting Zone fence gate. |
+| Z-fighting | `GeometryValidator` | 0 between different materials on every level. Window casings now sit 2 mm clear of the wall face; elevator car floor sits 1.5 cm below the landing. |
+| Portal doors | `qa-portals` | 26 / 26 pass. |
+| Baked lighting | Bake log + screenshots | School 0.38 s, Hotel 1.8 s, Mall 0.46 s, Pool 0.47 s, Apartments 0.36 s, Hallways 0.16 s on LOW (desktop CPU). Repeated vertices reuse results (≈ 80 % fewer rays). |
+| Darker areas | Screenshots | Hotel 4th floor (emergency lights, one failing tube), stairwell, service corridor and kitchen are dim; lobby and guest rooms warm. |
+| Footsteps | Listening test | 3–4 samples per surface, never the same sample twice in a row, fired on the stride; left/right alternate; volume follows walk/run. |
+| Door sounds | Listening test | Open sound when the door starts to swing, close sound when it meets the frame. |
+| Loading errors | Console capture | None. |
+
+---
+
 # DREAMSCAPE v1.1 — QA checklist
 
 Run against a production build (`npm run build && npm run preview`).

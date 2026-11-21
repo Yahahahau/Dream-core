@@ -80,7 +80,7 @@ export class CameraController {
     const stepIdx = Math.floor(this.phase / Math.PI);
     if (stepIdx !== this.lastStep) {
       this.lastStep = stepIdx;
-      if (a > 0.15 || this.bobAmt > 0.15) this.game.audio.footstep(player.surface, Math.min(1, this.bobAmt));
+      if (a > 0.15 || this.bobAmt > 0.15) this.game.audio.footstep(player.surface, Math.min(1, this.bobAmt), player.speed > 4.2);
     }
 
     // idle breathing sway (always present, subtle)

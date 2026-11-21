@@ -24,6 +24,8 @@ export class Level {
     this.surface = 'concrete';     // default footstep surface
     this.killY = -40;
     this.water = [];               // [{x0,z0,x1,z1,y,color}] for underwater tint
+    this.bake = !!def.bake;          // static lighting is baked into the architecture
+    this.bakeLights = [];
     this.b = new LevelBuilder(this);
   }
 
@@ -81,7 +83,7 @@ export class Level {
         if (p.x >= z.min[0] && p.x <= z.max[0] && p.y >= z.min[1] && p.y <= z.max[1] && p.z >= z.min[2] && p.z <= z.max[2]) { target = z; break; }
       }
       const k = Math.min(1, dt * 1.5);
-      L.hemi.intensity += (target.hemi - L.hemi.intensity) * k;
+      L.hemi.intensity += (target.hemi * (this.bake ? 0.55 : 1) - L.hemi.intensity) * k;
       const r = this.game.renderer.r;
       r.toneMappingExposure += ((target.exposure ?? this.lzBase.exposure ?? 1) - r.toneMappingExposure) * k;
     }

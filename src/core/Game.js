@@ -18,6 +18,7 @@ import { Settings, SaveSystem } from '../utils/SaveSystem.js';
 import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
 import { UpdateChecker } from '../utils/UpdateChecker.js';
 import { LEVEL_BY_ID } from '../levels/LevelRegistry.js';
+import { analyzeNavigation } from '../utils/NavValidator.js';
 
 /* global __BUILD_ID__, __APP_VERSION__ */
 
@@ -51,6 +52,7 @@ export class Game {
     this.time = 0;
     this.poseTimer = 0;
     window.__dream = this; // handy for debugging in the console
+    this.nav = (opts) => analyzeNavigation(this, this.world.level, opts);
   }
 
   async start(splash) {

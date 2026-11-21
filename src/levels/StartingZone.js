@@ -41,6 +41,7 @@ export default class StartingZone extends Level {
     // ---------- road ----------
     const road = curvePoints([[2, 40], [0, 8], [3, -30], [-6, -62], [6, -92], [24, -112], [HX, HZ + 8]], 2);
     this.road = road;
+    this.surfaceAt = (x, z) => (distToPath(x, z, road) < 2.3 ? 'asphalt' : null);
     const rm = makeMaterial({ map: asphaltTex(0x5d6066, '#f3efe2'), vertexColors: false, roughness: 0.92 });
     this.disposables.push(rm);
     ribbon(this, road, 4.2, H, rm, { lift: 0.05, uvScale: 4 });
@@ -51,12 +52,17 @@ export default class StartingZone extends Level {
 
     // ---------- fences winding over the hills ----------
     const fences = [
-      [[-30, 30], [-22, 0], [-26, -40], [-18, -80], [-30, -120], [-60, -150], [-110, -170]],
+      // a field gate breaks this fence where the path to the lone door crosses it
+      [[-30, 30], [-22, 0], [-26, -40], [-24, -55]],
+      [[-21, -70], [-18, -80], [-30, -120], [-60, -150], [-110, -170]],
       [[20, 30], [16, -10], [24, -50], [36, -80], [70, -100], [110, -95], [150, -120]],
       [[62, -100], [76, -125], [72, -152], [55, -170], [22, -176], [2, -160]],
       [[-140, -40], [-110, -30], [-95, -10], [-70, 10], [-40, 18]],
     ];
     fences.forEach((f) => fenceAlong(this, curvePoints(f, 1.6), H));
+    // gate posts and an open gate at the gap
+    for (const [gx, gz] of [[-24, -55], [-21, -70]]) b.prop([[0, 0, 0, 0.2, 1.4, 0.2, 0xf4f1ea], [0, 1.4, 0, 0.26, 0.12, 0.26, 0xf4f1ea]], gx, H(gx, gz), gz, 0, { collide: true, name: 'gatepost' });
+    b.prop([[0.8, 0.15, 0, 1.6, 0.08, 0.06, 0xf4f1ea], [0.8, 0.85, 0, 1.6, 0.08, 0.06, 0xf4f1ea], ...[0.2, 0.6, 1.0, 1.4].map((px) => [px, 0.1, 0, 0.08, 0.95, 0.04, 0xf4f1ea])], -24, H(-24, -55), -55, -0.9, { name: 'gate' });
 
     // ---------- the white house on the hill ----------
     this.buildWhiteHouse(H(HX, HZ));

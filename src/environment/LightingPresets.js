@@ -28,10 +28,10 @@ export const PRESETS = {
     exposure: 1.05, post: { saturation: 1.05, contrast: 0.98, gain: 0xf0ffff, vignette: 0.24, grain: 0.025, bloom: 0.3 },
   },
   hotel: {
-    sky: { top: 0x1d2a4a, horizon: 0x6a5a6a, cloudCover: 0.2, stars: 0.6 },
-    fog: { color: 0x3a2a24, near: 18, far: 70 },
-    hemi: [0xffe0b8, 0x8a5a40, 0.95], sun: { color: 0xffd5a0, intensity: 0.95, dir: [0.25, 0.92, 0.18], shadows: true },
-    exposure: 1.05, post: { saturation: 1.05, contrast: 1.04, gain: 0xffecd2, lift: 0x0a0604, vignette: 0.38, grain: 0.035, bloom: 0.35 },
+    sky: { top: 0x10172a, horizon: 0x3e3850, bottom: 0x22222c, cloudCover: 0.35, cloudOpacity: 0.35, stars: 0.1 },
+    fog: { color: 0x262a36, near: 16, far: 95 },
+    hemi: [0xb0bcd8, 0x3a3038, 0.8], sun: { color: 0x8a9ac8, intensity: 0.4, dir: [0.3, 0.8, -0.4], shadows: true },
+    exposure: 1.08, post: { saturation: 1.02, contrast: 1.05, gain: 0xffecd2, lift: 0x06070c, vignette: 0.4, grain: 0.04, bloom: 0.45 },
   },
   apartments: {
     sky: { top: 0x6d7fb8, horizon: 0xf4c9a4, bottom: 0xb59a8a, cloudCover: 0.35, billboards: 8, billboardTint: '#ffe3d0', sunDir: [-0.7, 0.18, 0.3], sunColor: 0xffb070, sunGlow: 2.5, sunSize: 300 },
@@ -103,7 +103,9 @@ export class Lighting {
     this.sun.color.set(p.sun.color); this.sun.intensity = p.sun.intensity;
     this.sunDir.set(...p.sun.dir).normalize();
     // shadows stay on at every tier (LOW uses a smaller map and tighter frustum)
-    this.sun.castShadow = !!p.sun.shadows;
+    const baked = !!g.world?.level?.bake;
+    this.sun.castShadow = !!p.sun.shadows && !baked;
+    if (baked) { this.sun.intensity *= 0.35; this.hemi.intensity *= 0.55; }
     const res = T.shadowMap;
     if (this.sun.shadow.mapSize.x !== res) {
       this.sun.shadow.mapSize.set(res, res);

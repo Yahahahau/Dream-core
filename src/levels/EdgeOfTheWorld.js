@@ -38,6 +38,7 @@ export default class EdgeOfTheWorld extends Level {
     const b = this.b, g = this.game, H = seaHeight;
     this.heightAt = H;
     this.terrainSurface = 'grass';
+    this.surfaceAt = (x, z) => (seaHeight(x, z) < 0.9 ? 'sand' : null);
     this.neighbors = ['frozen', 'hotel', 'hallways'];
     this.killY = -1.2;
 

@@ -113,19 +113,19 @@ export default class Anemoia extends Level {
     halo(this, HX, 2.4, HZ - 4, 1.4, '#ffd8a0', 0.7);
     for (const x of [HX - 2.7, HX + 2.7]) halo(this, x, 1.5, HZ - 3.9, 3, '#ffc070', 0.45);
     const homeLight = new THREE.PointLight(0xffc890, 9, 12, 1.5); homeLight.position.set(HX, 2.4, HZ); this.group.add(homeLight);
-    b.prop(F.sofa(0xd8a0a8), HX, 0, HZ + 2.4, Math.PI, { collide: true });
-    b.prop(F.tvOld(), HX, 0, HZ - 2.2, 0, { collide: true });
-    const tv = texturedPlane(this, staticTex(), HX, 0.78, HZ - 1.9, 0.58, 0.44, 0, { unlit: true });
+    b.prop(F.sofa(0xd8a0a8), HX + 1.0, 0, HZ + 0.6, -Math.PI / 2, { collide: true });
+    b.prop(F.tvOld(), HX - 3.9, 0, HZ + 0.6, Math.PI / 2, { collide: true });
+    const tv = texturedPlane(this, staticTex(), HX - 3.61, 0.78, HZ + 0.6, 0.58, 0.44, Math.PI / 2, { unlit: true });
     tv.material.map = tv.material.map.clone(); tv.material.map.needsUpdate = true; tv.material.opacity = 0.75; tv.material.transparent = true;
     this.disposables.push(tv.material.map);
     this.onUpdate(() => tv.material.map.offset.set(Math.random(), Math.random()));
     g.audio.positional(tv, { kind: 'static', volume: 0.03, ref: 1.2, filter: ['lowpass', 1800] });
     b.prop(F.lamp(0xffe0b0), HX + 3.6, 0, HZ + 2.8, 0);
-    b.prop(F.rug(0xc89a8a, 3, 2), HX, 0, HZ + 0.6, 0, { blob: false });
+    b.prop(F.rug(0xc89a8a, 2, 3), HX - 1.4, 0, HZ + 0.6, 0, { blob: false });
     texturedPlane(this, paintingTex(0), HX - 4.42, 1.6, HZ, 1.0, 0.75, Math.PI / 2);
-    addNote(this, hitbox(this, HX + 1.2, 0.5, HZ + 2.4, 0.4, 0.1, 0.4), { title: 'A note on the cushion', text: 'Welcome home.\n\nYou have been gone a long time,\nor no time at all.\nSit down. Rest your eyes.' });
-    const sofaHit = hitbox(this, HX, 0, HZ + 2.4, 2, 0.9, 0.9);
-    this.addInteractable({ mesh: sofaHit, prompt: 'Sit down and rest', use: (gm) => this.ending(gm) });
+    addNote(this, hitbox(this, HX + 1.0, 0.5, HZ + 1.4, 0.4, 0.1, 0.4), { title: 'A note on the cushion', text: 'Welcome home.\n\nYou have been gone a long time,\nor no time at all.\nSit down. Rest your eyes.' });
+    const sofaHit = hitbox(this, HX + 1.0, 0, HZ + 0.6, 0.9, 0.9, 2);
+    this.addInteractable({ mesh: sofaHit, prompt: 'Sit down and rest', target: { level: 'starting', spawn: 'default' }, use: (gm) => this.ending(gm) });
     sofaHit.userData.interactable = this.interactables[this.interactables.length - 1];
 
     grassField(this, { x0: -60, z0: 9, x1: 60, z1: 45, heightAt: () => 0, density: 0.45, height: 0.22, color: 0x6a9a48, sway: 0.05, seed: 50, avoid: (x, z) => Math.abs(x) < 9 });

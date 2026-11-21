@@ -209,7 +209,8 @@ export function streetLamp(level, x, y, z, rotY = 0, { on = true, color = 0xffd9
     const pool = new THREE.Mesh(new THREE.CircleGeometry(3.2, 24), new THREE.MeshBasicMaterial({ map: glowTex('#ffcf90'), color, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending }));
     pool.rotation.x = -Math.PI / 2; pool.position.set(lx, y + 0.03, lz);
     level.group.add(pool); level.disposables.push(pool.geometry, pool.material);
-    if (light) { const pl = new THREE.PointLight(color, 8, 14, 1.5); pl.position.set(lx, y + height - 0.6, lz); level.group.add(pl); }
+    if (level.bake) { const c = new THREE.Color(color); level.bakeLights.push({ pos: [lx, y + height - 0.5, lz], color: [c.r, c.g, c.b], intensity: 1.6, r0: 2.2, range: 14, down: true }); }
+    else if (light) { const pl = new THREE.PointLight(color, 8, 14, 1.5); pl.position.set(lx, y + height - 0.6, lz); level.group.add(pl); }
   }
   return [lx, lz];
 }

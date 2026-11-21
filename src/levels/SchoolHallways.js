@@ -90,12 +90,13 @@ export default class SchoolHallways extends Level {
       b.box(x0 + 0.05, 0.9, cz, 0.06, 1.3, Math.min(4, z1 - z0 - 2), b.mat('board', { map: chalkboardTex(opts.board || ['What did you dream about?', 'Write it down before', 'it disappears.']), roughness: 0.9 }), { collide: false, stretch: true, ao: false, rotY: 0 });
       b.prop(F.desk(0xb8946a), x0 + 1.4, 0, cz + 1.4, Math.PI / 2, { collide: true });
       for (let i = 0; i < 4; i++) for (let k = 0; k < 4; k++) {
-        const dx = x0 + 3.2 + i * 1.5, dz = z0 + 1.6 + k * 1.6;
+        const dx = x0 + 3.2 + i * 1.5, dz = z0 + 2.5 + k * 1.5;
         if (dx > x1 - 0.8 || dz > z1 - 0.8) continue;
         b.prop(F.desk(0xd4b48a), dx, 0, dz, -Math.PI / 2, { collide: true });
         b.prop(F.chair(0x4f7fb0), dx + 0.55, 0, dz, -Math.PI / 2, { collide: false });
       }
       texturedPlane(this, clockTex(), x1 - 0.02 + 0, 2.5, cz, 0.45, 0.45, -Math.PI / 2);
+      for (let fx = x0 + 2.2; fx < x1 - 1; fx += 3) for (let fz = z0 + 2; fz < z1 - 1; fz += 3) fluorescent(this, fx, h, fz, { w: 0.6, d: 1.2, rotY: Math.PI / 2 });
       texturedPlane(this, posterTex('school', Math.abs(x0) | 0), x0 + span / 2, 1.7, z0 + 0.02, 0.6, 0.8, 0);
     };
     classroom(-26, -17, 2.2, 10.5, HT);
