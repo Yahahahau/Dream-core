@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "note": "World map of DREAMSCAPE. Each entry lists how the location connects to others.",
+  "levels": [
+    { "id": "starting", "num": "00", "name": "Starting Zone", "style": "dreamcore", "exits": { "lone door on the hill": "almond", "back door of the white house": "school" } },
+    { "id": "almond", "num": "01", "name": "Almond Fields", "style": "dreamcore", "exits": { "garden gate": "maze", "bus stop": "apartments", "shed trapdoor": "pool", "door frame": "starting" } },
+    { "id": "school", "num": "02", "name": "School Hallways", "style": "dreamcore", "exits": { "stairwell POOL door": "pool", "playground door": "almond" } },
+    { "id": "pool", "num": "03", "name": "Average Waterpark", "style": "dreamcore", "exits": { "changing room EXIT": "hotel" } },
+    { "id": "hotel", "num": "04", "name": "Hotel Halls", "style": "dreamcore", "exits": { "room 214": "apartments", "elevator Floor ?": "edge", "room 207 (after looping)": "ballroom" } },
+    { "id": "apartments", "num": "05", "name": "Vintage Apartments", "style": "dreamcore", "exits": { "computer in 1A": "broken", "roof door": "mall" } },
+    { "id": "mall", "num": "06", "name": "Mall or No Mall?", "style": "blend", "exits": { "escalator to floor 3": "hallways", "arcade cabinet": "broken" } },
+    { "id": "maze", "num": "07", "name": "Hedge Maze", "style": "blend", "exits": { "white door at the center": "frozen", "garden door": "almond" } },
+    { "id": "hallways", "num": "08", "name": "Hallways of Time", "style": "blend", "exits": { "doors": ["school", "hotel", "apartments", "mall", "pool"], "old elevator": "edge" } },
+    { "id": "edge", "num": "09", "name": "The Edge of the World", "style": "blend", "exits": { "shrine on the floating island": "frozen", "island elevator": ["hotel", "hallways"] } },
+    { "id": "broken", "num": "10", "name": "Broken Reality", "style": "weirdcore", "exits": { "door at the top of the stairs": "hallways", "yellow door": "starting", "blue door": "frozen" } },
+    { "id": "frozen", "num": "11", "name": "Frozen Dream", "style": "dreamcore", "exits": { "door on the far hill": "anemoia" } },
+    { "id": "anemoia", "num": "12", "name": "Anemoia", "style": "dreamcore", "exits": { "rest on the sofa at home": "starting" } }
+  ]
+}
