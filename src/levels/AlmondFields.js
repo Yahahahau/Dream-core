@@ -38,7 +38,7 @@ export default class AlmondFields extends Level {
     // tall golden grass everywhere except the paths
     grassField(this, {
       x0: -140, z0: -230, x1: 140, z1: 50, heightAt: H, density: 0.55, height: 1.05, width: 0.07, color: 0xd8b25a, tint: [0.8, 1.2], sway: 0.22, chunk: 28, seed: 8,
-      avoid: (x, z) => paths.some((p) => distToPath(x, z, p) < 1.6) || (Math.abs(x + 60) < 5 && Math.abs(z + 74) < 5),
+      avoid: (x, z) => paths.some((p) => distToPath(x, z, p) < 1.6) || (Math.abs(x + 66) < 4.5 && Math.abs(z + 74) < 4) || (Math.abs(x - 84) < 4 && Math.abs(z + 94) < 2.5),
     });
     particles(this, { count: 300, size: 0.05, color: 0xfff0c0, box: 36, height: 8, fall: 0.03, drift: 1.2, opacity: 0.8 });
 

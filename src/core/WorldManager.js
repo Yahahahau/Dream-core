@@ -104,7 +104,7 @@ export class WorldManager {
     // a frame to settle before revealing
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const firstVisit = !game.save.data.discovered.includes(id) && game.state === 'play';
-    if (!opts.silent) game.ui.hud.showLocation(LEVEL_BY_ID[id]);
+    if (!opts.silent && !same) game.ui.hud.showLocation(LEVEL_BY_ID[id]);
     await this.fade(0, opts.instant ? 1.2 : 1.4);
     this.busy = false;
     if (game.state === 'play') game.player.frozen = false;

@@ -10,7 +10,7 @@ export function createElevator(level, o) {
   const c = Math.cos(rotY), s = Math.sin(rotY);
   const L = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
   const W = 2.2, D = 2.2, H = 2.6;
-  const wallM = b.mat('__elev_wall' + wallColor, { map: concreteTex(wallColor), color: 0xffffff, roughness: 0.35, metalness: inside === 'metal' ? 0.4 : 0, texScale: [1.5, 1.5] });
+  const wallM = b.mat('__elev_wall' + wallColor, { map: concreteTex(wallColor), color: 0xffffff, roughness: 0.35, metalness: inside === 'metal' ? 0.12 : 0, texScale: [1.5, 1.5] });
   const floorM = b.mat('__elev_floor', { map: concreteTex(0x6d6a66), roughness: 0.6, texScale: [1, 1] });
   // shell
   let p;

@@ -89,9 +89,10 @@ export default class FrozenDream extends Level {
     }
 
     // the cabin (enterable)
-    const CX = -30, CZ = -22, CY = H(CX, CZ);
+    const CX = -30, CZ = -22, CY = H(CX, CZ) + 0.3;
     const logs = b.mat('logs', { map: woodTex(0x7a5236, 8, 'logs'), texScale: [2, 2] });
-    b.box(CX, CY - 1.4, CZ, 6.6, 1.4, 5.6, logs, { ao: false, surface: 'wood' });
+    b.box(CX, CY - 1.7, CZ, 6.6, 1.7, 5.6, logs, { ao: false, surface: 'wood' });
+    b.box(CX, CY - 0.6, CZ + 3.2, 1.6, 0.3, 0.9, logs, { ao: false, surface: 'wood' });
     b.room(CX - 3, CZ - 2.5, CX + 3, CZ + 2.5, CY, 2.7, { wall: logs, thick: 0.25, floor: b.mat('cabinfloor', { map: woodTex(0xa07a50, 5), texScale: [2, 2] }), surface: 'wood', ceil: logs, openings: { n: [{ at: 3, w: 1.0, h: 2.1 }], e: [{ at: 2.5, w: 1.0, h: 0.9, y0: 1.1 }], w: [{ at: 2.5, w: 1.0, h: 0.9, y0: 1.1 }] } });
     b.add(gableRoofGeo(6.6, 5.6, 2.2, 0.5), b.mat('snowroof', { map: roofTex(0xeef2f8), texScale: [1, 1] }), { x: CX, y: CY + 2.7, z: CZ, rotY: Math.PI / 2, cast: true });
     createDoor(this, { x: CX, y: CY, z: CZ + 2.5 + 0.125, rotY: 0, color: 0x6a4a30, kind: 'panel' });

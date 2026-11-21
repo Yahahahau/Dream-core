@@ -38,7 +38,7 @@ export class CameraController {
     // Keep a sensible horizontal view in portrait by widening the vertical FOV.
     const minH = 68 * Math.PI / 180;
     const vFromH = 2 * Math.atan(Math.tan(minH / 2) / aspect) * 180 / Math.PI;
-    this.camera.fov = Math.min(100, Math.max(base, vFromH));
+    this.camera.fov = Math.min(95, Math.max(base, vFromH));
     this.camera.updateProjectionMatrix();
   }
 

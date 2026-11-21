@@ -52,9 +52,9 @@ export const PRESETS = {
   },
   hallways: {
     sky: { top: 0x9ab0d0, horizon: 0xefe6dc, cloudCover: 0.6, billboards: 6 },
-    fog: { color: 0xe6dccf, near: 18, far: 95 },
+    fog: { color: 0xe6dccf, near: 25, far: 120 },
     hemi: [0xfff3e6, 0x7a6a5a, 1.45], sun: { color: 0xfff0dc, intensity: 0.4, dir: [0.3, 0.8, 0.2], shadows: false },
-    exposure: 1.02, post: { saturation: 0.9, contrast: 0.98, gain: 0xfff4e6, lift: 0x0c0806, vignette: 0.35, grain: 0.04, haze: 0.12, hazeColor: 0xfff0dc },
+    exposure: 1.0, post: { saturation: 0.95, contrast: 1.02, gain: 0xfff4e6, lift: 0x080504, vignette: 0.35, grain: 0.04, haze: 0.05, hazeColor: 0xfff0dc },
   },
   edge: {
     sky: { top: 0x3570c6, horizon: 0xe8f0f6, bottom: 0x6b9ab8, cloudCover: 0.38, billboards: 16, billboardHeight: 20, sunDir: [0.3, 0.35, -0.8], sunSize: 700, sunGlow: 1.5 },
@@ -70,7 +70,7 @@ export const PRESETS = {
   },
   frozen: {
     sky: { top: 0x8ea8c8, horizon: 0xe6edf4, bottom: 0xd0dbe6, cloudCover: 0.75, cloudOpacity: 0.7, cloudColor: 0xf2f4f8, cloudShade: 0xb4c0d0, sunDir: [0.2, 0.25, -0.9], sunSize: 200, sunGlow: 0.6, sunColor: 0xdde8ff },
-    fog: { color: 0xdde5ee, near: 15, far: 210 },
+    fog: { color: 0xd9e2ee, near: 35, far: 340 },
     hemi: [0xe8f0ff, 0xbac8d8, 1.5], sun: { color: 0xd8e4ff, intensity: 1.0, dir: [0.2, 0.25, -0.9], shadows: true },
     exposure: 1.0, post: { saturation: 0.85, contrast: 0.98, gain: 0xeef4ff, lift: 0x05080c, vignette: 0.28, grain: 0.03 },
   },
